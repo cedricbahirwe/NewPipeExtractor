@@ -13,14 +13,6 @@ public class StreamInfoItemsCollector<I: StreamInfoItem, E: StreamInfoItemExtrac
 //    <StreamInfoItem, StreamInfoItemExtractor>
 
     // MARK: - Initializers
-    
-    /// Initializes the collector with a service ID.
-    ///
-    /// - Parameter serviceId: The ID of the service associated with this collector.
-//    init(serviceId: Int) {
-//        super.init(serviceId: serviceId)
-//    }
-    
     /// Initializes the collector with a service ID and a comparator.
     ///
     /// - Parameters:

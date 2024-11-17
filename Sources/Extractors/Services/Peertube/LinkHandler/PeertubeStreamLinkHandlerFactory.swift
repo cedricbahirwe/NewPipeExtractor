@@ -40,7 +40,7 @@ public final class PeertubeStreamLinkHandlerFactory: LinkHandlerFactory, Sendabl
         }
 
         do {
-            guard let urlType =  URL(string: url) else {
+            guard URL(string: url) != nil else {
                 throw URLError(.badURL)
             }
             _ = try getId(url)

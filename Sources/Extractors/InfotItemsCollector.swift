@@ -8,20 +8,15 @@
 import Foundation
 
 public class InfoItemsCollector<I: InfoItem, E: InfoItemExtractor>: Collector {
-    public typealias I = I
-       public typealias E = E
-//    public typealias I = InfoItem
-//    public typealias E = InfoItemExtractor
-
-//    <I: InfoItem, E: InfoItemExtractor>
     private var itemList: [I] = []
     private var errors: [Error] = []
     private let serviceId: Int
     private let comparator: ((I, I) -> Bool)?
 
     /// Create a new collector with no comparator / sorting function
-    public convenience init(serviceId: Int) {
-        self.init(serviceId: serviceId, comparator: nil)
+    public init(serviceId: Int) {
+        self.serviceId = serviceId
+        self.comparator = nil
     }
 
     /// Create a new collector with a custom comparator

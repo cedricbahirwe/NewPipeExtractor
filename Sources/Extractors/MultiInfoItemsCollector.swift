@@ -28,7 +28,7 @@ public class MultiInfoItemsCollector<I: StreamInfoItem, E: InfoItemExtractor>: I
     /// Initializes a `MultiInfoItemsCollector` with the given service ID.
     ///
     /// - Parameter serviceId: The ID of the service associated with the collector.
-    public init(serviceId: Int) {
+    public override init(serviceId: Int) {
         self.streamCollector = StreamInfoItemsCollector(serviceId: serviceId)
 //        self.userCollector = ChannelInfoItemsCollector(serviceId: serviceId)
 //        self.playlistCollector = PlaylistInfoItemsCollector(serviceId: serviceId)

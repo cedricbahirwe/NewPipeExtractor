@@ -37,8 +37,9 @@ public class PeertubeService: NSObject, StreamingService, @unchecked Sendable {
 //        return PeertubeChannelTabLinkHandlerFactory.getInstance()
     }
 
-    public func getPlaylistLHFactory() -> ListLinkHandlerFactory {
-        fatalError("getPlaylistLHFactory() not implemented")
+    public func getPlaylistLHFactory() throws -> ListLinkHandlerFactory {
+        throw Exception("getPlaylistLHFactory() not implemented")
+//        fatalError("getPlaylistLHFactory() not implemented")
 //        return PeertubePlaylistLinkHandlerFactory.getInstance()
     }
 
