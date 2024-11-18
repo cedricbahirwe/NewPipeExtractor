@@ -32,7 +32,6 @@ public typealias SearchQueryExtractor = String
 public typealias SuggestionExtractor = String
 public typealias FeedExtractor = String
 public typealias KioskList = String
-public typealias ChannelTabExtractor = String
 public typealias PlaylistExtractor = String
 public typealias CommentsExtractor = String
 public typealias ItagItem = String
@@ -192,9 +191,7 @@ extension StreamingService {
         return nil;
     }
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Extractors without link handler
-    ///////////////////////////////////////////////////////////////////////////
+    // MARK: - Extractors without link handler
 
     //    public func getSearchExtractor(
     //        _ query: String,

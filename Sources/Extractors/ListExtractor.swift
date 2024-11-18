@@ -32,7 +32,7 @@ public enum InfoItemsPageConstants {
 
 /// Base class for extractors that have a list (e.g., playlists, users).
 /// - Parameter R: The info item type this list extractor provides.
-public class ListExtractor<R: InfoItem>: Extractor {
+open class ListExtractor<R: InfoItem>: Extractor {
     // MARK: - Initializer
 
     /// Initializes the list extractor with the specified service and link handler.

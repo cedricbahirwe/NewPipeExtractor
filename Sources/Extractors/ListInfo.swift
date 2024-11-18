@@ -6,9 +6,7 @@
 //
 
 
-/**
- * Represents a list of items with related information like filters, sorting, and pagination.
- */
+/// Represents a list of items with related information like filters, sorting, and pagination.
 public class ListInfo<T: InfoItem>: Info {
     // MARK: - Properties
     private var relatedItems: [T] = []
