@@ -34,8 +34,9 @@ public struct Localization: Hashable, CustomStringConvertible, Sendable {
      */
     public static func fromLocalizationCode(_ localizationCode: String) -> Localization? {
         let locale = Locale(identifier: localizationCode)
-        let language = locale.languageCode
-        let country = locale.regionCode
+        let language = locale.language.languageCode?.identifier
+        let country = locale.region?.identifier
+
         guard let language = language else { return nil }
         return Localization(languageCode: language, countryCode: country)
     }
@@ -54,7 +55,10 @@ public struct Localization: Hashable, CustomStringConvertible, Sendable {
     }
 
     public static func fromLocale(_ locale: Locale) -> Localization {
-        return Localization(languageCode: locale.languageCode ?? "", countryCode: locale.regionCode)
+        Localization(
+            languageCode: locale.language.languageCode?.identifier ?? "",
+            countryCode: locale.region?.identifier
+        )
     }
 
     /**
@@ -92,7 +96,7 @@ public struct Localization: Hashable, CustomStringConvertible, Sendable {
         var localeMap: [String: Locale] = [:]
         for language in languages {
             let locale = Locale(identifier: language)
-            localeMap[locale.languageCode ?? ""] = locale
+            localeMap[locale.language.languageCode?.identifier ?? ""] = locale
         }
         if let locale = localeMap[code] {
             return locale

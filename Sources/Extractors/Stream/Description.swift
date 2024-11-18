@@ -23,7 +23,7 @@ public struct Description: Codable, Equatable, Hashable, Sendable {
     static let PLAIN_TEXT = 3
 
     /// An empty description instance.
-    static let EMPTY_DESCRIPTION = Description(content: "", type: PLAIN_TEXT)
+    static let EMPTY = Description(content: "", type: PLAIN_TEXT)
 
     // MARK: - Properties
 

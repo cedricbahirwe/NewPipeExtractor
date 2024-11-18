@@ -35,8 +35,8 @@ public typealias KioskList = String
 public typealias ChannelExtractor = String
 public typealias ChannelTabExtractor = String
 public typealias PlaylistExtractor = String
-public typealias StreamExtractor = String
 public typealias CommentsExtractor = String
+public typealias ItagItem = String
 
 public typealias List<T> = Array<T>
 public protocol StreamingService {
