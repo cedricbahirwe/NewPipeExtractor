@@ -32,7 +32,6 @@ public typealias SearchQueryExtractor = String
 public typealias SuggestionExtractor = String
 public typealias FeedExtractor = String
 public typealias KioskList = String
-public typealias ChannelExtractor = String
 public typealias ChannelTabExtractor = String
 public typealias PlaylistExtractor = String
 public typealias CommentsExtractor = String
@@ -84,9 +83,7 @@ public protocol StreamingService {
     func getSearchQHFactory() -> SearchQueryHandlerFactory
     func getCommentsLHFactory() -> ListLinkHandlerFactory
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Extractors
-    ///////////////////////////////////////////////////////////////////////////
+    // MARK: - Extractors
 
     /**
      * Must create a new instance of a SearchExtractor implementation.
@@ -223,17 +220,15 @@ extension StreamingService {
     ////            .fromQuery(id, contentFilter, sortFilter));
     //    }
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Short extractors overloads
-    ///////////////////////////////////////////////////////////////////////////
+    // MARK: - Short extractors overloads
 
-    //    public func getSearchExtractor(_ query: String) throws -> SearchExtractor {
-    //        return getSearchExtractor(getSearchQHFactory().fromQuery(query));
-    //    }
-    //
-    //    public func getChannelExtractor(_ url: String) throws -> ChannelExtractor {
-    //        return getChannelExtractor(getChannelLHFactory().fromUrl(url));
-    //    }
+//    public func getSearchExtractor(_ query: String) throws -> SearchExtractor<InfoItem> {
+//        return getSearchExtractor(getSearchQHFactory().fromQuery(query))
+//    }
+
+    public func getChannelExtractor(_ url: String) throws -> ChannelExtractor {
+        try getChannelExtractor(try getChannelLHFactory().fromUrl(url))
+    }
 
     //    public ChannelTabExtractor getChannelTabExtractorFromId(final String id, final String tab)
     //            throws ExtractionException {

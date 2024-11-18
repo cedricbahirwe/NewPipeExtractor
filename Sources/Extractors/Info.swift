@@ -86,7 +86,7 @@ public class Info: Codable {
     }
 
     // MARK: - Description
-    public var description: String {
+    public var toString: String {
         let ifDifferentString = url == originalUrl ? "" : " (originalUrl=\"\(originalUrl)\")"
         return "\(type(of: self))[url=\"\(url)\"\(ifDifferentString), name=\"\(name)\"]"
     }

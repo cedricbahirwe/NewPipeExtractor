@@ -10,6 +10,9 @@ import Foundation
 public protocol ListLinkHandlerFactory: LinkHandlerFactory {
 
     // MARK: - To Override
+
+    func fromUrl(_ url: String) throws -> ListLinkHandler
+
     func getUrl(id: String, contentFilters: [String], sortFilter: String) throws -> String
 
     func getUrl(id: String, contentFilters: [String], sortFilter: String, baseUrl: String) throws -> String
@@ -19,7 +22,7 @@ extension ListLinkHandlerFactory {
 
     // MARK: - Logic
 
-    public func fromUrl(_ url: String) throws -> LinkHandler {
+    public func fromUrl(_ url: String) throws -> ListLinkHandler {
         try fromUrl(url: url)
     }
 

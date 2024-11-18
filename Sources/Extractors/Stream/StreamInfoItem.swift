@@ -130,7 +130,7 @@ public class StreamInfoItem: InfoItem {
     }
 
     /// Returns a string representation of the `StreamInfoItem`.
-    public override var description: String {
+    public override var toString: String {
         """
         StreamInfoItem {
             streamType: \(streamType),

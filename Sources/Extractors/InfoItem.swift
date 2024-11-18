@@ -37,8 +37,7 @@ open class InfoItem: Codable {
         self.thumbnails = thumbnails
     }
 
-    // Description
-    public var description: String {
+    public var toString: String {
         return "\(type(of: self))[url=\"\(url)\", name=\"\(name)\"]"
     }
 }
