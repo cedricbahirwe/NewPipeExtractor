@@ -7,25 +7,6 @@
 
 import Foundation
 
-/*
- * Copyright (C) 2018 Christian Schabesberger <chris.schabesberger@mailbox.org>
- * StreamingService.java is part of NewPipe Extractor.
- *
- * NewPipe Extractor is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * NewPipe Extractor is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with NewPipe Extractor.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-
 public typealias SearchQueryHandlerFactory = String
 public typealias SubscriptionExtractor = String
 public typealias SearchQueryExtractor = String
@@ -33,7 +14,6 @@ public typealias SuggestionExtractor = String
 public typealias FeedExtractor = String
 public typealias KioskList = String
 public typealias PlaylistExtractor = String
-public typealias CommentsExtractor = String
 public typealias ItagItem = String
 
 public typealias List<T> = Array<T>
@@ -80,7 +60,7 @@ public protocol StreamingService {
      * @return an instance of a SearchQueryHandlerFactory
      */
     func getSearchQHFactory() -> SearchQueryHandlerFactory
-    func getCommentsLHFactory() -> ListLinkHandlerFactory
+    func getCommentsLHFactory() throws -> ListLinkHandlerFactory
 
     // MARK: - Extractors
 
@@ -149,20 +129,20 @@ public protocol StreamingService {
      * @param name the name of the service
      * @param capabilities the type of media this service can handle
      */
-//    func `init`(id: Int,
-//         name: String,
-//         capabilities: List<StreamingServiceInfo.MediaCapability>)
+    //    func `init`(id: Int,
+    //         name: String,
+    //         capabilities: List<StreamingServiceInfo.MediaCapability>)
 }
 
 extension StreamingService  {
-//    public func `init`(
-//        id: Int,
-//        name: String,
-//        capabilities: List<StreamingServiceInfo.MediaCapability>
-//    ) {
-//        self.serviceId = id
-//        self.serviceInfo = StreamingServiceInfo(name, capabilities)
-//    }
+    //    public func `init`(
+    //        id: Int,
+    //        name: String,
+    //        capabilities: List<StreamingServiceInfo.MediaCapability>
+    //    ) {
+    //        self.serviceId = id
+    //        self.serviceInfo = StreamingServiceInfo(name, capabilities)
+    //    }
 }
 
 extension StreamingService {
@@ -227,12 +207,25 @@ extension StreamingService {
         try getChannelExtractor(try getChannelLHFactory().fromUrl(url))
     }
 
-    //    public ChannelTabExtractor getChannelTabExtractorFromId(final String id, final String tab)
-    //            throws ExtractionException {
-    //        return getChannelTabExtractor(getChannelTabLHFactory().fromQuery(
-    //                id, Collections.singletonList(tab), ""));
-    //    }
-    //
+    public func getChannelTabExtractorFromId(_ id: String, _ tab: String) throws -> ChannelTabExtractor {
+        let linkHandler = try getChannelTabLHFactory().fromQuery(
+            id: id,
+            contentFilters: [tab],
+            sortFilter: ""
+        )
+        return try getChannelTabExtractor(linkHandler)
+    }
+
+    public func getChannelTabExtractorFromIdAndBaseUrl(_ id: String, _ tab: String, _ baseUrl: String) throws -> ChannelTabExtractor {
+        let linkHandler = try getChannelTabLHFactory().fromQuery(
+            id: id,
+            contentFilters: [tab],
+            sortFilter: "",
+            baseUrl: baseUrl
+        )
+        return try getChannelTabExtractor(linkHandler)
+    }
+
     //    public ChannelTabExtractor getChannelTabExtractorFromIdAndBaseUrl(final String id,
     //                                                                      final String tab,
     //                                                                      final String baseUrl)
@@ -245,17 +238,14 @@ extension StreamingService {
     //        return getPlaylistExtractor(getPlaylistLHFactory().fromUrl(url));
     //    }
 
-    //    public StreamExtractor getStreamExtractor(final String url) throws ExtractionException {
-    //        return getStreamExtractor(getStreamLHFactory().fromUrl(url));
-    //    }
+    public func getStreamExtractor(_ url: String) throws -> StreamExtractor {
+        return try getStreamExtractor(try getStreamLHFactory().fromUrl(url));
+    }
 
-    //    public CommentsExtractor getCommentsExtractor(final String url) throws ExtractionException {
-    //        final ListLinkHandlerFactory listLinkHandlerFactory = getCommentsLHFactory();
-    //        if (listLinkHandlerFactory == null) {
-    //            return null;
-    //        }
-    //        return getCommentsExtractor(listLinkHandlerFactory.fromUrl(url));
-    //    }
+    public func getCommentsExtractor(_ url: String) throws -> CommentsExtractor? {
+        guard let listLinkHandlerFactory = try? getCommentsLHFactory() else { return nil }
+        return try getCommentsExtractor(try listLinkHandlerFactory.fromUrl(url))
+    }
 
     // MARK: - Utils
 
