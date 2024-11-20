@@ -11,7 +11,6 @@ public typealias SearchQueryHandlerFactory = String
 public typealias SubscriptionExtractor = String
 public typealias SearchQueryExtractor = String
 public typealias SuggestionExtractor = String
-public typealias KioskList = String
 public typealias PlaylistExtractor = String
 public typealias ItagItem = String
 
