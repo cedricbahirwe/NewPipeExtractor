@@ -11,7 +11,6 @@ public typealias SearchQueryHandlerFactory = String
 public typealias SubscriptionExtractor = String
 public typealias SearchQueryExtractor = String
 public typealias SuggestionExtractor = String
-public typealias FeedExtractor = String
 public typealias KioskList = String
 public typealias PlaylistExtractor = String
 public typealias ItagItem = String
@@ -155,7 +154,7 @@ extension StreamingService {
     }
 
     public var description: String {
-        return String(serviceId) + ":" + serviceInfo.getName();
+        return String(serviceId) + ":" + serviceInfo.getName()
     }
 
 
@@ -168,7 +167,7 @@ extension StreamingService {
      * @return a {@link FeedExtractor} instance or null.
      */
     public func getFeedExtractor(_ url: String) throws -> FeedExtractor? {
-        return nil;
+        return nil
     }
 
     // MARK: - Extractors without link handler
