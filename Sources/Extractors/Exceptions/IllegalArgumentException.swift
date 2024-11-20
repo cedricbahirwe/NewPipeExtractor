@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct IllegalArgumentException: Error {
+public class IllegalArgumentException: Error, @unchecked Sendable {
     public let message: String
 
     init(_ message: String) {

@@ -1,13 +1,13 @@
 //
-//  ContentNotAvailableException.swift
+//  ContentNotSupportedException.swift
 //  NewPipeExtractor
 //
-//  Created by Cédric Bahirwe on 16/11/2024.
+//  Created by Cédric Bahirwe on 20/11/2024.
 //
 
 import Foundation
 
-public class ContentNotAvailableException: ParsingException, @unchecked Sendable {
+public class ContentNotSupportedException: ParsingException, @unchecked Sendable {
     public init(_ message: String) {
         super.init(message)
     }
