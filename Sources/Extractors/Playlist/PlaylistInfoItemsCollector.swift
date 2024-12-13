@@ -16,48 +16,46 @@ public class PlaylistInfoItemsCollector<E: PlaylistInfoItemExtractor>: InfoItems
             name: try extractor.getName()
         )
 
-        do {
+        trySetValue {
             resultItem.setUploaderName(try extractor.getUploaderName())
-        } catch {
-            addError(error)
         }
 
-        do {
+        trySetValue {
             resultItem.setUploaderUrl(try extractor.getUploaderUrl())
-        } catch {
-            addError(error)
         }
 
-        do {
+        trySetValue {
             resultItem.setUploaderVerified(try extractor.isUploaderVerified())
-        } catch {
-            addError(error)
         }
 
-        do {
+        trySetValue {
             resultItem.setThumbnails(try extractor.getThumbnails())
-        } catch {
-            addError(error)
         }
 
-        do {
+        trySetValue {
             resultItem.setStreamCount(try extractor.getStreamCount())
-        } catch {
-            addError(error)
         }
 
-        do {
+        trySetValue {
             resultItem.setDescription(try extractor.getDescription())
-        } catch {
-            addError(error)
         }
 
-        do {
+        trySetValue {
             resultItem.setPlaylistType(try extractor.getPlaylistType())
-        } catch {
-            addError(error)
+        }
+
+        trySetValue {
+            resultItem.setPlaylistType(try extractor.getPlaylistType())
         }
 
         return resultItem
+    }
+
+    private func trySetValue(_ block: () throws -> Void) {
+        do {
+            try block()
+        } catch {
+            self.addError(error)
+        }
     }
 }
