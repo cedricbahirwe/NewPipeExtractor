@@ -7,7 +7,6 @@
 
 import Foundation
 
-public typealias SearchQueryHandlerFactory = String
 public typealias SubscriptionExtractor = String
 public typealias SearchQueryExtractor = String
 public typealias SuggestionExtractor = String
