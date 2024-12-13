@@ -5,7 +5,6 @@
 //  Created by Cédric Bahirwe on 13/12/2024.
 //
 
-
 public class PlaylistInfoItem: InfoItem {
     public var uploaderName: String?
     public var uploaderUrl: String?
@@ -24,7 +23,7 @@ public class PlaylistInfoItem: InfoItem {
     }
 
     public func getUploaderName() -> String? {
-        return uploaderName
+        uploaderName
     }
 
     public func setUploaderName(_ uploaderName: String) {
@@ -32,7 +31,7 @@ public class PlaylistInfoItem: InfoItem {
     }
 
     public func getUploaderUrl() -> String? {
-        return uploaderUrl
+        uploaderUrl
     }
 
     public func setUploaderUrl(_ uploaderUrl: String) {
@@ -40,7 +39,7 @@ public class PlaylistInfoItem: InfoItem {
     }
 
     public func isUploaderVerified() -> Bool {
-        return uploaderVerified
+        uploaderVerified
     }
 
     public func setUploaderVerified(_ uploaderVerified: Bool) {
@@ -48,7 +47,7 @@ public class PlaylistInfoItem: InfoItem {
     }
 
     public func getStreamCount() -> Int64 {
-        return streamCount
+        streamCount
     }
 
     public func setStreamCount(_ streamCount: Int64) {
@@ -56,7 +55,7 @@ public class PlaylistInfoItem: InfoItem {
     }
 
     public func getDescription() -> Description {
-        return description
+        description
     }
 
     public func setDescription(_ description: Description) {
@@ -64,7 +63,7 @@ public class PlaylistInfoItem: InfoItem {
     }
 
     public func getPlaylistType() -> PlaylistInfo.PlaylistType {
-        return playlistType
+        playlistType
     }
 
     public func setPlaylistType(_ playlistType: PlaylistInfo.PlaylistType) {

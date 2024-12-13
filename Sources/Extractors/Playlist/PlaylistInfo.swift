@@ -131,14 +131,4 @@ public class PlaylistInfo: ListInfo<StreamInfoItem> {
 
         return info
     }
-
-    // MARK: - Private Helper Methods
-
-    private func trySetValue(_ block: () throws -> Void) {
-        do {
-            try block()
-        } catch {
-            self.addError(error)
-        }
-    }
 }

@@ -53,8 +53,8 @@ public class PeertubeService: NSObject, StreamingService, @unchecked Sendable {
 //        return PeertubeCommentsLinkHandlerFactory.getInstance()
     }
 
-//    public func getSearchExtractor(_ queryHandler: SearchQueryHandler) -> SearchExtractor<InfoItem> {
-//        getSearchExtractor(queryHandler: queryHandler)
+//    public func getSearchExtractor<T>(_ queryHandler: SearchQueryHandler) -> SearchExtractor<T> where T : InfoItem {
+//        sgetSearchExtractor(queryHandler)
 //    }
 
     public func getSearchExtractor(_ queryHandler: SearchQueryHandler) -> SearchExtractor<StreamInfoItem> {

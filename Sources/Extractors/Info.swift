@@ -45,6 +45,14 @@ public class Info: Codable {
         }
     }
 
+    public func trySetValue(_ block: () throws -> Void) {
+        do {
+            try block()
+        } catch {
+            self.addError(error)
+        }
+    }
+
     public func addAllErrors(_ errors: [Error]) {
         self.errors.append(contentsOf: errors.compactMap({ $0 as? InfoError }))
     }

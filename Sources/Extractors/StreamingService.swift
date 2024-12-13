@@ -68,7 +68,7 @@ public protocol StreamingService {
      * @return a new SearchExtractor instance
      */
     func getSearchExtractor(_ queryHandler: SearchQueryHandler) -> SearchExtractor<ResultInfoItem>
-
+//    func getSearchExtractor<T: InfoItem>(_ queryHandler: SearchQueryHandler) -> SearchExtractor<T>
     /**
      * Must create a new instance of a SuggestionExtractor implementation.
      * @return a new SuggestionExtractor instance
@@ -197,8 +197,8 @@ extension StreamingService {
 
     // MARK: - Short extractors overloads
 
-//    public func getSearchExtractor(_ query: String) throws -> SearchExtractor<InfoItem> {
-//        return getSearchExtractor(getSearchQHFactory().fromQuery(query))
+//    public func getSearchExtractor<T: InfoItem>(_ query: String) throws -> SearchExtractor<T> {
+//        return getSearchExtractor(getSearchQHFactory().fromQuery(query: query))
 //    }
 
     public func getChannelExtractor(_ url: String) throws -> ChannelExtractor {
