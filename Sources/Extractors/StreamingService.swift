@@ -9,7 +9,6 @@ import Foundation
 
 public typealias SubscriptionExtractor = String
 public typealias SearchQueryExtractor = String
-public typealias SuggestionExtractor = String
 public typealias ItagItem = String
 
 public typealias List<T> = Array<T>
@@ -68,7 +67,6 @@ public protocol StreamingService {
      * @return a new SearchExtractor instance
      */
     func getSearchExtractor(_ queryHandler: SearchQueryHandler) -> SearchExtractor<ResultInfoItem>
-//    func getSearchExtractor<T: InfoItem>(_ queryHandler: SearchQueryHandler) -> SearchExtractor<T>
     /**
      * Must create a new instance of a SuggestionExtractor implementation.
      * @return a new SuggestionExtractor instance

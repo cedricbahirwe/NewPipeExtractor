@@ -53,10 +53,6 @@ public class PeertubeService: NSObject, StreamingService, @unchecked Sendable {
 //        return PeertubeCommentsLinkHandlerFactory.getInstance()
     }
 
-//    public func getSearchExtractor<T>(_ queryHandler: SearchQueryHandler) -> SearchExtractor<T> where T : InfoItem {
-//        sgetSearchExtractor(queryHandler)
-//    }
-
     public func getSearchExtractor(_ queryHandler: SearchQueryHandler) -> SearchExtractor<StreamInfoItem> {
         let contentFilters = queryHandler.getContentFilters()
         let hasSepiaFilter = !contentFilters.isEmpty && contentFilters[0].starts(with: "sepia_")

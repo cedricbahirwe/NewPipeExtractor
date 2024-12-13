@@ -16,7 +16,7 @@ public class MetaInfo: Codable {
     private var title: String = ""
 
     /// Content description.
-    private var content: Description? // Assuming `Description` is another class or struct.
+    private var content: Description?
 
     /// List of associated URLs.
     private var urls: [URL] = []
