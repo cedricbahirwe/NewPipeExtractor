@@ -10,10 +10,11 @@ import Foundation
 public typealias SubscriptionExtractor = String
 public typealias SearchQueryExtractor = String
 public typealias SuggestionExtractor = String
-public typealias PlaylistExtractor = String
 public typealias ItagItem = String
 
 public typealias List<T> = Array<T>
+
+public typealias AnyStreamingService = (any StreamingService)
 public protocol StreamingService {
     associatedtype ResultInfoItem: InfoItem
     var serviceId: Int { get set }
@@ -231,12 +232,12 @@ extension StreamingService {
     //                id, Collections.singletonList(tab), "", baseUrl));
     //    }
 
-    //    public PlaylistExtractor getPlaylistExtractor(final String url) throws ExtractionException {
-    //        return getPlaylistExtractor(getPlaylistLHFactory().fromUrl(url));
-    //    }
+    public func getPlaylistExtractor(_ url: String) throws -> PlaylistExtractor {
+        return try getPlaylistExtractor(try getPlaylistLHFactory().fromUrl(url))
+    }
 
     public func getStreamExtractor(_ url: String) throws -> StreamExtractor {
-        return try getStreamExtractor(try getStreamLHFactory().fromUrl(url));
+        return try getStreamExtractor(try getStreamLHFactory().fromUrl(url))
     }
 
     public func getCommentsExtractor(_ url: String) throws -> CommentsExtractor? {
