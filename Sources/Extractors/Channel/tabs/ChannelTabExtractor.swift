@@ -8,10 +8,10 @@
 import Foundation
 
 /// A `ListExtractor` of `InfoItem`s for tabs of channels.
-open class ChannelTabExtractor: ListExtractor<InfoItem> {
+public class ChannelTabExtractor: ListExtractor<InfoItem> {
 
-    override init(service: any StreamingService, linkHandler: ListLinkHandler) {
-        super.init(service: service, linkHandler: linkHandler)
+    override init(_ service: StreamingService, _ linkHandler: ListLinkHandler) {
+        super.init(service, linkHandler)
     }
 
     override open func getName() -> String {

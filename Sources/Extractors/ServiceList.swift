@@ -20,14 +20,14 @@ public enum ServiceList {
      * When creating a new service, put this service at the end of this list,
      * and give it the next free id.
      */
-    nonisolated(unsafe) private static let SERVICES: [any StreamingService] = [
+    nonisolated(unsafe) private static let SERVICES: [StreamingService] = [
         /*YouTube, SoundCloud, MediaCCC, */PeerTube/*, Bandcamp*/
     ]
 
     /// Get all the supported services.
     ///
     /// - Returns: An immutable list of all supported services.
-    public static func all() -> [any StreamingService] {
+    public static func all() -> [StreamingService] {
         return SERVICES
     }
 }

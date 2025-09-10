@@ -37,25 +37,25 @@ public final class NewPipe {
 
     // MARK: - Utils
 
-    public static func getServices() -> [any StreamingService] {
+    public static func getServices() -> [StreamingService] {
         return ServiceList.all()
     }
 
-    public static func getService(_ serviceId: Int) throws -> any StreamingService {
-        if let service = ServiceList.all().first(where: { $0.getServiceId() == serviceId }) {
+    public static func getService(_ serviceId: Int) throws -> StreamingService {
+        if let service = ServiceList.all().first(where: { $0.serviceId == serviceId }) {
             return service
         }
         throw ExtractionException("There's no service with the id = \"\(serviceId)\"")
     }
 
-    public static func getService(_ serviceName: String) throws -> any StreamingService {
-        if let service = ServiceList.all().first(where: { $0.getServiceInfo().name == serviceName }) {
+    public static func getService(_ serviceName: String) throws -> StreamingService {
+        if let service = ServiceList.all().first(where: { $0.serviceInfo.name == serviceName }) {
             return service
         }
         throw ExtractionException("There's no service with the name = \"\(serviceName)\"")
     }
 
-    public static func getServiceByUrl(_ url: String) throws -> any StreamingService {
+    public static func getServiceByUrl(_ url: String) throws -> StreamingService {
         for service in ServiceList.all() {
             if try service.getLinkTypeByUrl(url) != .none {
                 return service

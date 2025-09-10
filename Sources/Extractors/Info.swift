@@ -61,7 +61,7 @@ public class Info: Codable {
         return serviceId
     }
 
-    public func getService() -> any StreamingService {
+    public func getService() -> StreamingService {
         do {
             return try NewPipe.getService(serviceId)
         } catch {

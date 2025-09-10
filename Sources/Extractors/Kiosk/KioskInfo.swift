@@ -17,7 +17,7 @@ public final class KioskInfo: ListInfo<StreamInfoItem> {
     
     /// Fetches more items for a kiosk.
     public static func getMoreItems(
-        service: any StreamingService,
+        service: StreamingService,
         url: String,
         page: Page
     ) throws -> InfoItemsPage<StreamInfoItem> {
@@ -31,7 +31,7 @@ public final class KioskInfo: ListInfo<StreamInfoItem> {
     }
 
     /// Fetches `KioskInfo` for a specific service and URL.
-    public static func getInfo(service: any StreamingService, url: String) throws -> KioskInfo {
+    public static func getInfo(service: StreamingService, url: String) throws -> KioskInfo {
         let extractor: KioskExtractor<StreamInfoItem> = try service.getKioskList().getExtractorByUrl(url: url, nextPage: nil)
         try extractor.fetchPage()
         return try getInfo(extractor: extractor)

@@ -7,12 +7,12 @@
 
 
 /// Abstract class for extracting kiosk items.
-open class KioskExtractor<T: InfoItem>: ListExtractor<T> {
+public class KioskExtractor<T: InfoItem>: ListExtractor<T> {
     private let id: String
 
-    public init(streamingService: any StreamingService, linkHandler: ListLinkHandler, kioskId: String) {
+    public init(streamingService: StreamingService, linkHandler: ListLinkHandler, kioskId: String) {
         self.id = kioskId
-        super.init(service: streamingService, linkHandler: linkHandler)
+        super.init(streamingService, linkHandler)
     }
 
     open override func getId() -> String {

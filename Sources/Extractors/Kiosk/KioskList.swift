@@ -14,13 +14,13 @@ public class KioskList {
     /// Protocol for a factory that creates `KioskExtractor` instances.
     public protocol KioskExtractorFactory {
         func createNewKiosk<T: InfoItem>(
-            streamingService: any StreamingService,
+            streamingService: StreamingService,
             url: String,
             kioskId: String
         ) throws -> KioskExtractor<T>
     }
 
-    private let service: any StreamingService
+    private let service: StreamingService
     private var kioskList: [String: KioskEntry] = [:]
     private var defaultKiosk: String?
     private var forcedLocalization: Localization?
@@ -37,7 +37,7 @@ public class KioskList {
     }
 
     /// Initializes the kiosk list for a given streaming service.
-    public init(service: any StreamingService) {
+    public init(service: StreamingService) {
         self.service = service
     }
 

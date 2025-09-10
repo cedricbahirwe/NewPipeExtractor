@@ -43,7 +43,7 @@ public class ChannelInfo: Info {
     }
 
     /// Factory method to fetch `ChannelInfo` for a given service and URL.
-    public static func getInfo(from service: any StreamingService, url: String) throws -> ChannelInfo {
+    public static func getInfo(from service: StreamingService, url: String) throws -> ChannelInfo {
         let extractor = try service.getChannelExtractor(url)
         try extractor.fetchPage()
         return try getInfo(from: extractor)

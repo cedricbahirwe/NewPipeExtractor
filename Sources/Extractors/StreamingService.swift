@@ -65,7 +65,6 @@ public class StreamingService: CustomStringConvertible {
                 _ capabilities: List<ServiceInfo.MediaCapability>) {
         self.serviceId = id
         self.serviceInfo = ServiceInfo(name, capabilities)
-        let res = self is NSObject
     }
 
     public var description: String {
@@ -123,7 +122,7 @@ public class StreamingService: CustomStringConvertible {
     /// Must create a new instance of a SearchExtractor implementation.
     /// - Parameter queryHandler: specifies the keyword to look for, and the filters which should be applied.
     /// - Returns: a new SearchExtractor instance
-    public func getSearchExtractor(_ queryHandler: SearchQueryHandler) -> SearchExtractor<ResultInfoItem> {
+    public func getSearchExtractor(_ queryHandler: SearchQueryHandler) -> SearchExtractor {
         fatalError("Must override")
     }
 
@@ -138,7 +137,7 @@ public class StreamingService: CustomStringConvertible {
      * @return just null
      */
     func getSubscriptionExtractor() -> SubscriptionExtractor? {
-
+        fatalError()
     }
 
     /**
@@ -262,26 +261,29 @@ extension StreamingService {
 //    }
 
     public func getChannelExtractor(_ url: String) throws -> ChannelExtractor {
-        try getChannelExtractor(try getChannelLHFactory().fromUrl(url))
+        fatalError()
+//        try getChannelExtractor(try getChannelLHFactory().fromUrl(url))
     }
 
     public func getChannelTabExtractorFromId(_ id: String, _ tab: String) throws -> ChannelTabExtractor {
-        let linkHandler = try getChannelTabLHFactory().fromQuery(
-            id: id,
-            contentFilters: [tab],
-            sortFilter: ""
-        )
-        return try getChannelTabExtractor(linkHandler)
+        fatalError()
+//        let linkHandler = try getChannelTabLHFactory().fromQuery(
+//            id: id,
+//            contentFilters: [tab],
+//            sortFilter: ""
+//        )
+//        return try getChannelTabExtractor(linkHandler)
     }
 
     public func getChannelTabExtractorFromIdAndBaseUrl(_ id: String, _ tab: String, _ baseUrl: String) throws -> ChannelTabExtractor {
-        let linkHandler = try getChannelTabLHFactory().fromQuery(
-            id: id,
-            contentFilters: [tab],
-            sortFilter: "",
-            baseUrl: baseUrl
-        )
-        return try getChannelTabExtractor(linkHandler)
+        fatalError()
+//        let linkHandler = try getChannelTabLHFactory().fromQuery(
+//            id: id,
+//            contentFilters: [tab],
+//            sortFilter: "",
+//            baseUrl: baseUrl
+//        )
+//        return try getChannelTabExtractor(linkHandler)
     }
 
     //    public ChannelTabExtractor getChannelTabExtractorFromIdAndBaseUrl(final String id,
@@ -293,11 +295,13 @@ extension StreamingService {
     //    }
 
     public func getPlaylistExtractor(_ url: String) throws -> PlaylistExtractor {
-        return try getPlaylistExtractor(try getPlaylistLHFactory().fromUrl(url))
+        fatalError()
+//        return try getPlaylistExtractor(try getPlaylistLHFactory().fromUrl(url))
     }
 
     public func getStreamExtractor(_ url: String) throws -> StreamExtractor {
-        return try getStreamExtractor(try getStreamLHFactory().fromUrl(url))
+        fatalError()
+//        return try getStreamExtractor(try getStreamLHFactory().fromUrl(url))
     }
 
     public func getCommentsExtractor(_ url: String) throws -> CommentsExtractor? {

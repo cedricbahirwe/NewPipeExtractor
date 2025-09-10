@@ -17,7 +17,7 @@ public class ChannelTabInfo: ListInfo<InfoItem> {
     }
     
     /// Get a `ChannelTabInfo` instance from the given service and tab handler.
-    public static func getInfo(service: any StreamingService, linkHandler: ListLinkHandler) throws -> ChannelTabInfo {
+    public static func getInfo(service: StreamingService, linkHandler: ListLinkHandler) throws -> ChannelTabInfo {
         let extractor = try service.getChannelTabExtractor(linkHandler)
         try extractor.fetchPage()
         return getInfo(extractor: extractor)
@@ -40,7 +40,7 @@ public class ChannelTabInfo: ListInfo<InfoItem> {
         return info
     }
 
-    public static func getMoreItems(service: any StreamingService, linkHandler: ListLinkHandler, page: Page) throws -> InfoItemsPage<InfoItem> {
+    public static func getMoreItems(service: StreamingService, linkHandler: ListLinkHandler, page: Page) throws -> InfoItemsPage<InfoItem> {
         return try service.getChannelTabExtractor(linkHandler).getPage(page)
     }
 }

@@ -29,7 +29,7 @@ public final class CommentsInfo: ListInfo<CommentsInfoItem> {
         return try getInfo(service: service, url: url)
     }
 
-    public static func getInfo(service: any StreamingService, url: String) throws -> CommentsInfo? {
+    public static func getInfo(service: StreamingService, url: String) throws -> CommentsInfo? {
         guard let commentsExtractor = try? service.getCommentsExtractor(url) else {
             return nil // For services without a comments extractor
         }
@@ -70,7 +70,7 @@ public final class CommentsInfo: ListInfo<CommentsInfoItem> {
     }
 
     public static func getMoreItems(
-        service: any StreamingService,
+        service: StreamingService,
         commentsInfo: CommentsInfo,
         page: Page
     ) throws -> InfoItemsPage<CommentsInfoItem> {
@@ -78,7 +78,7 @@ public final class CommentsInfo: ListInfo<CommentsInfoItem> {
     }
 
     public static func getMoreItems(
-        service: any StreamingService,
+        service: StreamingService,
         url: String,
         page: Page
     ) throws -> InfoItemsPage<CommentsInfoItem> {

@@ -22,7 +22,7 @@ public class SuggestionExtractor {
     }
 
     public func getServiceId() -> Int {
-        service.getServiceId()
+        service.serviceId
     }
 
     public func getService() -> AnyStreamingService {

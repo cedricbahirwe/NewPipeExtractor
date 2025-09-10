@@ -8,13 +8,13 @@
 import Foundation
 
 /// Base class for extracting information from a video/audio streaming service (e.g., YouTube).
-open class StreamExtractor: Extractor {
+public class StreamExtractor: Extractor {
 
     public static let noAgeLimit = 0
     public static let unknownSubscriberCount: Int64 = -1
 
-    public override init(service: any StreamingService, linkHandler: LinkHandler) {
-        super.init(service: service, linkHandler: linkHandler)
+    public override init(_ service: StreamingService, _ linkHandler: LinkHandler) {
+        super.init(service, linkHandler)
     }
 
     /// The original textual date provided by the service. Returns `nil` for live streams.

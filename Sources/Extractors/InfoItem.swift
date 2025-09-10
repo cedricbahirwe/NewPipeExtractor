@@ -7,7 +7,7 @@
 
 import Foundation
 
-open class InfoItem: Codable {
+public class InfoItem: Codable {
     public enum InfoType: String, Codable {
         case stream
         case playlist
