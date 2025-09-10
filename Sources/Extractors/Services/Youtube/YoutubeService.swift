@@ -10,7 +10,7 @@
 //    
 //    public var serviceId: Int
 //    
-//    public var serviceInfo: StreamingServiceInfo
+//    public var serviceInfo: StreamingServiceInfog
 //    
 //    public func getBaseUrl() -> String {
 //        <#code#>

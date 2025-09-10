@@ -22,7 +22,7 @@ public class StreamingService: CustomStringConvertible {
 
         public let mediaCapabilities: List<MediaCapability>
 
-        
+
         /// Creates a new instance of a ServiceInfo
         /// - Parameters:
         ///   - name: the name of the service
@@ -49,7 +49,7 @@ public class StreamingService: CustomStringConvertible {
     public let serviceId: Int
     public let serviceInfo: ServiceInfo
 
-    
+
     ///  Creates a new Streaming service.
     ///
     ///  If you Implement one do not set id within your implementation of this extractor, instead
@@ -132,133 +132,98 @@ public class StreamingService: CustomStringConvertible {
         fatalError("Must override")
     }
 
-    /**
-     * Outdated or obsolete. null can be returned.
-     * @return just null
-     */
-    func getSubscriptionExtractor() -> SubscriptionExtractor? {
-        fatalError()
-    }
-
-    /**
-     * Must create a new instance of a KioskList implementation.
-     * @return a new KioskList instance
-     */
-    func getKioskList() throws -> KioskList {
+    @available(*, deprecated, message: "Outdated or obsolete. null can be returned.")
+    public func getSubscriptionExtractor() -> SubscriptionExtractor? {
         fatalError("Must override")
     }
 
-    /**
-     * Must create a new instance of a ChannelExtractor implementation.
-     * @param linkHandler is pointing to the channel which should be handled by this new instance.
-     * @return a new ChannelExtractor
-     */
-    func getChannelExtractor(_ linkHandler: ListLinkHandler) throws -> ChannelExtractor {
-        fatalError("Must override")
-    }
-
-    /**
-     * Must create a new instance of a ChannelTabExtractor implementation.
-     *
-     * @param linkHandler is pointing to the channel which should be handled by this new instance.
-     * @return a new ChannelTabExtractor
-     */
-    func getChannelTabExtractor(_ linkHandler: ListLinkHandler) throws -> ChannelTabExtractor {
-        fatalError("Must override")
-    }
-
-    /**
-     * Must crete a new instance of a PlaylistExtractor implementation.
-     * @param linkHandler is pointing to the playlist which should be handled by this new instance.
-     * @return a new PlaylistExtractor
-     */
-    func getPlaylistExtractor(_ linkHandler: ListLinkHandler) throws -> PlaylistExtractor {
-        fatalError("Must override")
-    }
-
-    /**
-     * Must create a new instance of a StreamExtractor implementation.
-     * @param linkHandler is pointing to the stream which should be handled by this new instance.
-     * @return a new StreamExtractor
-     */
-    func getStreamExtractor(_ linkHandler: LinkHandler) throws -> StreamExtractor {
-        fatalError("Must override")
-    }
-
-    func getCommentsExtractor(_ linkHandler: ListLinkHandler) throws -> CommentsExtractor {
-        fatalError("Must override")
-    }
-
-    /**
-     * Creates a new Streaming service.
-     * If you Implement one do not set id within your implementation of this extractor, instead
-     * set the id when you put the extractor into {@link ServiceList}
-     * All other parameters can be set directly from the overriding constructor.
-     * @param id the number of the service to identify him within the NewPipe frontend
-     * @param name the name of the service
-     * @param capabilities the type of media this service can handle
-     */
-    //    func `init`(id: Int,
-    //         name: String,
-    //         capabilities: List<StreamingServiceInfo.MediaCapability>)
-}
-
-extension StreamingService  {
-    //    public func `init`(
-    //        id: Int,
-    //        name: String,
-    //        capabilities: List<StreamingServiceInfo.MediaCapability>
-    //    ) {
-    //        self.serviceId = id
-    //        self.serviceInfo = StreamingServiceInfo(name, capabilities)
-    //    }
-}
-
-extension StreamingService {
-
-    /**
-     * This method decides which strategy will be chosen to fetch the feed. In YouTube, for example,
-     * a separate feed exists which is lightweight and made specifically to be used like this.
-     * <p>
-     * In services which there's no other way to retrieve them, null should be returned.
-     *
-     * @return a {@link FeedExtractor} instance or null.
-     */
-    public func getFeedExtractor(_ url: String) throws -> FeedExtractor? {
+    /// This method decides which strategy will be chosen to fetch the feed.
+    ///
+    /// In YouTube, for example,
+    /// a separate feed exists which is lightweight and made specifically to be used like this.
+    ///
+    /// In services which there's no other way to retrieve them, null should be returned.
+    /// - Returns: a ``FeedExtractor`` instance or null
+    public func getFeedExtractor(_ url: String) throws(ExtractionException) -> FeedExtractor? {
         return nil
+    }
+
+    /// Must create a new instance of a KioskList implementation.
+    public func getKioskList() throws(ExtractionException) -> KioskList {
+        fatalError("Must override")
+    }
+
+    /// Must create a new instance of a ChannelExtractor implementation.
+    ///
+    /// - Parameter linkHandler: is pointing to the channel which should be handled by this new instance.
+    /// - Returns: a new ChannelExtractor
+    public func getChannelExtractor(_ linkHandler: ListLinkHandler) throws(ExtractionException) -> ChannelExtractor {
+        fatalError("Must override")
+    }
+
+    /// Must create a new instance of a ChannelTabExtractor implementation.
+    ///
+    /// - Parameter linkHandler: is pointing to the channel which should be handled by this new instance.
+    /// - Returns: a new ChannelTabExtractor
+    public func getChannelTabExtractor(_ linkHandler: ListLinkHandler) throws(ExtractionException) -> ChannelTabExtractor {
+        fatalError("Must override")
+    }
+
+    /// Must crete a new instance of a PlaylistExtractor implementation.
+    ///
+    /// - Parameter linkHandler: is pointing to the playlist which should be handled by this new instance.
+    /// - Returns: a new PlaylistExtractor
+    public func getPlaylistExtractor(_ linkHandler: ListLinkHandler) throws(ExtractionException) -> PlaylistExtractor {
+        fatalError("Must override")
+    }
+
+    /// Must create a new instance of a StreamExtractor implementation.
+    ///
+    /// - Parameter linkHandler: is pointing to the stream which should be handled by this new instance.
+    /// - Returns: a new StreamExtractor
+    public func getStreamExtractor(_ linkHandler: LinkHandler) throws(ExtractionException) -> StreamExtractor {
+        fatalError("Must override")
+    }
+
+    public func getCommentsExtractor(_ linkHandler: ListLinkHandler) throws(ExtractionException) -> CommentsExtractor {
+        fatalError("Must override")
     }
 
     // MARK: - Extractors without link handler
 
-    //    public func getSearchExtractor(
-    //        _ query: String,
-    //        _ contentFilter: List<String>,
-    //        _ sortFilter: String) throws -> SearchExtractor {
-    //        return getSearchExtractor(getSearchQHFactory())
-    //                .fromQuery(query, contentFilter, sortFilter));
-    //    }
+    public func getSearchExtractor(
+        _ query: String,
+        _ contentFilter: List<String>,
+        _ sortFilter: String) throws(ExtractionException) -> SearchExtractor {
+            fatalError("Must override")
+            //        return getSearchExtractor(getSearchQHFactory())
+            //                .fromQuery(query, contentFilter, sortFilter));
+        }
 
-    //    public func getChannelExtractor(
-    //        _ id: String,
-    //        _ contentFilter: List<String>,
-    //        _ sortFilter: String) throws -> ChannelExtractor {
-    //        return getChannelExtractor(getChannelLHFactory())
-    //            .fromQuery(id, contentFilter, sortFilter));
-    //    }
+    public func getChannelExtractor(
+        _ id: String,
+        _ contentFilter: List<String>,
+        _ sortFilter: String) throws(ExtractionException) -> ChannelExtractor {
+            fatalError("Must override")
+            //            return getChannelExtractor(getChannelLHFactory())
+            //                .fromQuery(id, contentFilter, sortFilter));
+        }
 
-    //    public func getPlaylistExtractor(
-    //        _ id: String,
-    //        _ contentFilter: List<String>,
-    //        _ sortFilter: String) throws -> PlaylistExtractor {
-    //        return getPlaylistExtractor(getPlaylistLHFactory())
-    ////            .fromQuery(id, contentFilter, sortFilter));
-    //    }
+    public func getPlaylistExtractor(
+        _ id: String,
+        _ contentFilter: List<String>,
+        _ sortFilter: String) throws(ExtractionException) -> PlaylistExtractor {
+            fatalError("Must override")
+            //            return getPlaylistExtractor(getPlaylistLHFactory())
+            //            .fromQuery(id, contentFilter, sortFilter));
+        }
 
     // MARK: - Short extractors overloads
 
-//    public func getSearchExtractor<T: InfoItem>(_ query: String) throws -> SearchExtractor<T> {
-//        return getSearchExtractor(getSearchQHFactory().fromQuery(query: query))
-//    }
+    public func getSearchExtractor(_ query: String) throws(ExtractionException) -> SearchExtractor {
+        fatalError()
+//        return getSearchExtractor(try getSearchQHFactory().fromQuery(query: query))
+    }
 
     public func getChannelExtractor(_ url: String) throws -> ChannelExtractor {
         fatalError()
@@ -286,14 +251,6 @@ extension StreamingService {
 //        return try getChannelTabExtractor(linkHandler)
     }
 
-    //    public ChannelTabExtractor getChannelTabExtractorFromIdAndBaseUrl(final String id,
-    //                                                                      final String tab,
-    //                                                                      final String baseUrl)
-    //            throws ExtractionException {
-    //        return getChannelTabExtractor(getChannelTabLHFactory().fromQuery(
-    //                id, Collections.singletonList(tab), "", baseUrl));
-    //    }
-
     public func getPlaylistExtractor(_ url: String) throws -> PlaylistExtractor {
         fatalError()
 //        return try getPlaylistExtractor(try getPlaylistLHFactory().fromUrl(url))
@@ -311,13 +268,9 @@ extension StreamingService {
 
     // MARK: - Utils
 
-    /**
-     * Figures out where the link is pointing to (a channel, a video, a playlist, etc.)
-     *
-     * - Parameter url: The URL to determine the link type of.
-     * - Returns: The link type of the URL.
-     * - Throws: A `ParsingException` if an error occurs during processing.
-     */
+    /// Figures out where the link is pointing to (a channel, a video, a playlist, etc.)
+    /// - Parameter url: The URL to determine the link type of.
+    /// - Returns: The link type of the URL.
     public func getLinkTypeByUrl(_ url: String) throws -> StreamingService.LinkType {
         let polishedUrl = try Utils.followGoogleRedirectIfNeeded(url)
 
@@ -338,16 +291,12 @@ extension StreamingService {
 
     // MARK: -  Localization
 
-    /**
-     * Returns a list of localizations that this service supports.
-     */
+    /// Returns a list of localizations that this service supports.
     public func getSupportedLocalizations() -> List<Localization> {
         [Localization.DEFAULT]
     }
 
-    /**
-     * Returns a list of countries that this service supports.<br>
-     */
+    /// Returns a list of countries that this service supports.
     public func getSupportedCountries() -> List<ContentCountry> {
         [ContentCountry.DEFAULT]
     }
@@ -378,10 +327,11 @@ extension StreamingService {
     }
 
     /**
-     * Returns the country that should be used to fetch content in this service. It will get the user's preferred country,
-     * then it will:
+     * Returns the country that should be used to fetch content in this service.
+     *
+     * It will get the user's preferred country(using ``NewPipe/getPreferredContentCountry()``, then it will:
      * - Check if the country is supported by this service.
-     * - If not, fallback to the default country.
+     * - If not, fallback to the ``ContentCountry/DEFAULT`` country.
      */
     public func getContentCountry() -> ContentCountry {
         let preferredContentCountry = NewPipe.getPreferredContentCountry()
@@ -395,10 +345,8 @@ extension StreamingService {
 
     /// Retrieves an instance of the time ago parser using the patterns related to the specified localization.
     ///
-    /// Similar to `getLocalization()`, it will attempt to fall back to a less specific localization
+    /// Similar to ``StreamingService/getLocalization()``, it will attempt to fall back to a less specific localization
     /// if the exact one is not available or supported.
-    ///
-    /// - Throws: `IllegalArgumentException` if the localization is not supported (parsing patterns are unavailable).
     public func getTimeAgoParser(_ localization: Localization) throws -> TimeAgoParser {
         if let targetParser = TimeAgoPatternsManager.getTimeAgoParserFor(localization) {
             return targetParser
