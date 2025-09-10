@@ -49,7 +49,7 @@ public final class NewPipe {
     }
 
     public static func getService(_ serviceName: String) throws -> any StreamingService {
-        if let service = ServiceList.all().first(where: { $0.getServiceInfo().getName() == serviceName }) {
+        if let service = ServiceList.all().first(where: { $0.getServiceInfo().name == serviceName }) {
             return service
         }
         throw ExtractionException("There's no service with the name = \"\(serviceName)\"")

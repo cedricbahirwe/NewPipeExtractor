@@ -44,7 +44,7 @@ public final class FeedInfo: ListInfo<StreamInfoItem> {
     public static func getInfo(service: any StreamingService, url: String) throws -> FeedInfo {
         guard let extractor = try service.getFeedExtractor(url) else {
             throw IllegalArgumentException(
-                "Service \"\(service.getServiceInfo().getName())\" doesn't support FeedExtractor."
+                "Service \"\(service.getServiceInfo().name)\" doesn't support FeedExtractor."
             )
         }
 

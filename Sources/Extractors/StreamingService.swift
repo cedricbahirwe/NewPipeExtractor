@@ -13,84 +13,150 @@ public typealias ItagItem = String
 
 public typealias List<T> = Array<T>
 
-public typealias AnyStreamingService = (any StreamingService)
-public protocol StreamingService {
-    associatedtype ResultInfoItem: InfoItem
-    var serviceId: Int { get set }
-    var serviceInfo: StreamingServiceInfo { get set }
+public typealias AnyStreamingService = StreamingService
+public class StreamingService: CustomStringConvertible {
 
-    func getBaseUrl() -> String
+    /// This class holds meta information about the service implementation.
+    public struct ServiceInfo {
+        public let name: String
+
+        public let mediaCapabilities: List<MediaCapability>
+
+        
+        /// Creates a new instance of a ServiceInfo
+        /// - Parameters:
+        ///   - name: the name of the service
+        ///   - mediaCapabilities: the type of media this service can handle
+        public init(_ name: String, _ mediaCapabilities: List<MediaCapability>) {
+            self.name = name;
+            self.mediaCapabilities = mediaCapabilities
+        }
+
+        public enum MediaCapability {
+            case audio, video, live, comments
+        }
+    }
+
+    /// LinkType will be used to determine which type of URL you are handling,
+    /// and therefore which part of NewPipe should handle a certain URL.
+    public enum LinkType {
+        case none,
+             stream,
+             channel,
+             playlist
+    }
+
+    public let serviceId: Int
+    public let serviceInfo: ServiceInfo
+
+    
+    ///  Creates a new Streaming service.
+    ///
+    ///  If you Implement one do not set id within your implementation of this extractor, instead
+    ///  set the id when you put the extractor into `NewPipe`
+    ///  All other parameters can be set directly from the overriding constructor.
+    /// - Parameters:
+    ///   - id: the number of the service to identify him within the NewPipe frontend
+    ///   - name: the name of the service
+    ///   - capabilities: the type of media this service can handle
+    /// - SeeAlso: `NewPipe`
+    public init(_ id: Int,
+                _ name: String,
+                _ capabilities: List<ServiceInfo.MediaCapability>) {
+        self.serviceId = id
+        self.serviceInfo = ServiceInfo(name, capabilities)
+        let res = self is NSObject
+    }
+
+    public var description: String {
+        "\(serviceId):\(serviceInfo.name)"
+    }
+
+
+    // Abstracts
+    public func getBaseUrl() -> String {
+        fatalError("Must override")
+    }
+
 
     // MARK: - Url Id handler
 
-    /**
-     * Must return a new instance of an implementation of LinkHandlerFactory for streams.
-     * @return an instance of a LinkHandlerFactory for streams
-     */
+    ///  Must return a new instance of an implementation of LinkHandlerFactory for streams.
+    /// - Returns: an instance of a LinkHandlerFactory for streams
+    public func getStreamLHFactory() throws -> LinkHandlerFactory {
+        fatalError("Must override")
+    }
 
-    func getStreamLHFactory() throws -> LinkHandlerFactory
+    /// Must return a new instance of an implementation of ListLinkHandlerFactory for channels.
+    /// If support for channels is not given null must be returned.
+    /// - Returns: an instance of a ListLinkHandlerFactory for channels or null
+    public func getChannelLHFactory() throws -> ListLinkHandlerFactory? {
+        fatalError("Must override")
+    }
 
-    /**
-     * Must return a new instance of an implementation of ListLinkHandlerFactory for channels.
-     * If support for channels is not given null must be returned.
-     * @return an instance of a ListLinkHandlerFactory for channels or null
-     */
-    func getChannelLHFactory() throws -> ListLinkHandlerFactory
+    /// Must return a new instance of an implementation of ListLinkHandlerFactory for channel tabs.
+    /// If support for channel tabs is not given null must be returned.
+    /// - Returns: an instance of a ListLinkHandlerFactory for channels or null
+    public func  getChannelTabLHFactory() throws -> ListLinkHandlerFactory? {
+        fatalError("Must override")
+    }
 
-    /**
-     * Must return a new instance of an implementation of ListLinkHandlerFactory for channel tabs.
-     * If support for channel tabs is not given null must be returned.
-     *
-     * @return an instance of a ListLinkHandlerFactory for channels or null
-     */
-    func  getChannelTabLHFactory() throws -> ListLinkHandlerFactory
+    /// Must return a new instance of an implementation of ListLinkHandlerFactory for playlists.
+    /// If support for playlists is not given null must be returned.
+    /// - Returns: an instance of a ListLinkHandlerFactory for playlists or null
+    public  func getPlaylistLHFactory() throws -> ListLinkHandlerFactory? {
+        fatalError("Must override")
+    }
 
-    /**
-     * Must return a new instance of an implementation of ListLinkHandlerFactory for playlists.
-     * If support for playlists is not given null must be returned.
-     * @return an instance of a ListLinkHandlerFactory for playlists or null
-     */
-    func getPlaylistLHFactory() throws -> ListLinkHandlerFactory
+    /// Must return an instance of an implementation of SearchQueryHandlerFactory.
+    /// - Returns: an instance of a SearchQueryHandlerFactory
+    public func getSearchQHFactory() -> SearchQueryHandlerFactory {
+        fatalError("Must override")
+    }
 
-    /**
-     * Must return an instance of an implementation of SearchQueryHandlerFactory.
-     * @return an instance of a SearchQueryHandlerFactory
-     */
-    func getSearchQHFactory() -> SearchQueryHandlerFactory
-    func getCommentsLHFactory() throws -> ListLinkHandlerFactory
+    public func getCommentsLHFactory() throws -> ListLinkHandlerFactory {
+        fatalError("Must override")
+    }
 
     // MARK: - Extractors
 
-    /**
-     * Must create a new instance of a SearchExtractor implementation.
-     * @param queryHandler specifies the keyword lock for, and the filters which should be applied.
-     * @return a new SearchExtractor instance
-     */
-    func getSearchExtractor(_ queryHandler: SearchQueryHandler) -> SearchExtractor<ResultInfoItem>
-    /**
-     * Must create a new instance of a SuggestionExtractor implementation.
-     * @return a new SuggestionExtractor instance
-     */
-    func getSuggestionExtractor() -> SuggestionExtractor
+    /// Must create a new instance of a SearchExtractor implementation.
+    /// - Parameter queryHandler: specifies the keyword to look for, and the filters which should be applied.
+    /// - Returns: a new SearchExtractor instance
+    public func getSearchExtractor(_ queryHandler: SearchQueryHandler) -> SearchExtractor<ResultInfoItem> {
+        fatalError("Must override")
+    }
+
+    /// Must create a new instance of a SuggestionExtractor implementation.
+    /// - Returns: a new SuggestionExtractor instance
+    public func getSuggestionExtractor() -> SuggestionExtractor {
+        fatalError("Must override")
+    }
 
     /**
      * Outdated or obsolete. null can be returned.
      * @return just null
      */
-    func getSubscriptionExtractor() -> SubscriptionExtractor?
+    func getSubscriptionExtractor() -> SubscriptionExtractor? {
+
+    }
 
     /**
      * Must create a new instance of a KioskList implementation.
      * @return a new KioskList instance
      */
-    func getKioskList() throws -> KioskList
+    func getKioskList() throws -> KioskList {
+        fatalError("Must override")
+    }
 
     /**
      * Must create a new instance of a ChannelExtractor implementation.
      * @param linkHandler is pointing to the channel which should be handled by this new instance.
      * @return a new ChannelExtractor
      */
-    func getChannelExtractor(_ linkHandler: ListLinkHandler) throws -> ChannelExtractor
+    func getChannelExtractor(_ linkHandler: ListLinkHandler) throws -> ChannelExtractor {
+        fatalError("Must override")
+    }
 
     /**
      * Must create a new instance of a ChannelTabExtractor implementation.
@@ -98,23 +164,31 @@ public protocol StreamingService {
      * @param linkHandler is pointing to the channel which should be handled by this new instance.
      * @return a new ChannelTabExtractor
      */
-    func getChannelTabExtractor(_ linkHandler: ListLinkHandler) throws -> ChannelTabExtractor
+    func getChannelTabExtractor(_ linkHandler: ListLinkHandler) throws -> ChannelTabExtractor {
+        fatalError("Must override")
+    }
 
     /**
      * Must crete a new instance of a PlaylistExtractor implementation.
      * @param linkHandler is pointing to the playlist which should be handled by this new instance.
      * @return a new PlaylistExtractor
      */
-    func getPlaylistExtractor(_ linkHandler: ListLinkHandler) throws -> PlaylistExtractor
+    func getPlaylistExtractor(_ linkHandler: ListLinkHandler) throws -> PlaylistExtractor {
+        fatalError("Must override")
+    }
 
     /**
      * Must create a new instance of a StreamExtractor implementation.
      * @param linkHandler is pointing to the stream which should be handled by this new instance.
      * @return a new StreamExtractor
      */
-    func getStreamExtractor(_ linkHandler: LinkHandler) throws -> StreamExtractor
+    func getStreamExtractor(_ linkHandler: LinkHandler) throws -> StreamExtractor {
+        fatalError("Must override")
+    }
 
-    func getCommentsExtractor(_ linkHandler: ListLinkHandler) throws -> CommentsExtractor
+    func getCommentsExtractor(_ linkHandler: ListLinkHandler) throws -> CommentsExtractor {
+        fatalError("Must override")
+    }
 
     /**
      * Creates a new Streaming service.
@@ -142,18 +216,6 @@ extension StreamingService  {
 }
 
 extension StreamingService {
-    public func getServiceId() -> Int {
-        return serviceId
-    }
-
-    public func getServiceInfo() -> StreamingServiceInfo {
-        return serviceInfo
-    }
-
-    public var description: String {
-        return String(serviceId) + ":" + serviceInfo.getName()
-    }
-
 
     /**
      * This method decides which strategy will be chosen to fetch the feed. In YouTube, for example,
@@ -252,7 +314,7 @@ extension StreamingService {
      * - Returns: The link type of the URL.
      * - Throws: A `ParsingException` if an error occurs during processing.
      */
-    public func getLinkTypeByUrl(_ url: String) throws -> StreamingServiceTypes.LinkType {
+    public func getLinkTypeByUrl(_ url: String) throws -> StreamingService.LinkType {
         let polishedUrl = try Utils.followGoogleRedirectIfNeeded(url)
 
         let sH = try? getStreamLHFactory()
@@ -333,7 +395,7 @@ extension StreamingService {
     /// if the exact one is not available or supported.
     ///
     /// - Throws: `IllegalArgumentException` if the localization is not supported (parsing patterns are unavailable).
-    public func getTimeAgoParser(for localization: Localization) throws -> TimeAgoParser {
+    public func getTimeAgoParser(_ localization: Localization) throws -> TimeAgoParser {
         if let targetParser = TimeAgoPatternsManager.getTimeAgoParserFor(localization) {
             return targetParser
         }

@@ -21,7 +21,7 @@ public class PeertubeService: NSObject, StreamingService, @unchecked Sendable {
     public init(id: Int, instance: PeertubeInstance) {
         self.shared = instance
         self.serviceId = id
-        self.serviceInfo = StreamingServiceInfo("PeerTube", [.VIDEO, .COMMENTS])
+        self.serviceInfo = StreamingServiceInfo("PeerTube", [.video, .comments])
     }
 
     public func getStreamLHFactory() throws -> LinkHandlerFactory {
