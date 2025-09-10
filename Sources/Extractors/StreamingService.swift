@@ -20,14 +20,14 @@ public class StreamingService: CustomStringConvertible {
     public struct ServiceInfo {
         public let name: String
 
-        public let mediaCapabilities: List<MediaCapability>
+        public let mediaCapabilities: Set<MediaCapability>
 
 
         /// Creates a new instance of a ServiceInfo
         /// - Parameters:
         ///   - name: the name of the service
         ///   - mediaCapabilities: the type of media this service can handle
-        public init(_ name: String, _ mediaCapabilities: List<MediaCapability>) {
+        public init(_ name: String, _ mediaCapabilities: Set<MediaCapability>) {
             self.name = name;
             self.mediaCapabilities = mediaCapabilities
         }
@@ -62,7 +62,7 @@ public class StreamingService: CustomStringConvertible {
     /// - SeeAlso: `NewPipe`
     public init(_ id: Int,
                 _ name: String,
-                _ capabilities: List<ServiceInfo.MediaCapability>) {
+                _ capabilities: Set<ServiceInfo.MediaCapability>) {
         self.serviceId = id
         self.serviceInfo = ServiceInfo(name, capabilities)
     }
