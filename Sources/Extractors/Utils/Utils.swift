@@ -157,4 +157,84 @@ public class Utils {
         return toRemove.replacingOccurrences(of: "\\D+", with: "", options: .regularExpression)
     }
 
+    /// Errors thrown by regex parser functions.
+    enum RegexError: Error {
+        case noMatch(group: Int)
+    }
+
+    /// Tries multiple string regular expressions on an input and returns the first match of group 0 (full match).
+    /// - Parameters:
+    ///   - input: The input string to search.
+    ///   - regexStrings: An array of regex strings to try.
+    /// - Throws: `RegexError.noMatch` if none of the regexes matched the input.
+    /// - Returns: The matched string from group 0.
+    public static func getStringResultFromRegexArray(
+        _ input: String,
+        regexStrings: [String]
+    ) throws -> String {
+        return try getStringResultFromRegexArray(input, regexStrings: regexStrings, group: 0)
+    }
+
+    /// Tries multiple regular expressions on an input and returns the first match of group 0 (full match).
+    /// - Parameters:
+    ///   - input: The input string to search.
+    ///   - regexes: An array of `NSRegularExpression` objects to try.
+    /// - Throws: `RegexError.noMatch` if none of the regexes matched the input.
+    /// - Returns: The matched string from group 0.
+    public static func getStringResultFromRegexArray(
+        _ input: String,
+        regexes: [NSRegularExpression]
+    ) throws -> String {
+        return try getStringResultFromRegexArray(input, regexes: regexes, group: 0)
+    }
+
+
+    /// Tries multiple string regular expressions on an input and returns the first match of a specific capture group.
+    /// - Parameters:
+    ///   - input: The input string to search.
+    ///   - regexStrings: An array of regex strings to try.
+    ///   - group: The capture group index to extract.
+    /// - Throws: `RegexError.noMatch` if none of the regexes matched the input on the specified group.
+    /// - Returns: The matched string from the specified capture group.
+    public static func getStringResultFromRegexArray(
+        _ input: String,
+        regexStrings: [String],
+        group: Int
+    ) throws -> String {
+        // Filter out nil values and compile to NSRegularExpression
+        let regexes: [NSRegularExpression] = try regexStrings.compactMap { regexString in
+            return try NSRegularExpression(pattern: regexString, options: [])
+        }
+
+        // Call the previous function that works with NSRegularExpression array
+        return try getStringResultFromRegexArray(input, regexes: regexes, group: group)
+    }
+
+    /// Tries multiple regular expressions on an input and returns the first match of a specific capture group.
+    /// - Parameters:
+    ///   - input: The input string to search.
+    ///   - regexes: An array of `NSRegularExpression` objects to try.
+    ///   - group: The capture group index to extract.
+    /// - Throws: `RegexError.noMatch` if none of the regexes matched the input on the specified group.
+    /// - Returns: The matched string from the specified capture group.
+    public static func getStringResultFromRegexArray(
+        _ input: String,
+        regexes: [NSRegularExpression],
+        group: Int
+    ) throws -> String {
+        for regex in regexes {
+            let range = NSRange(input.startIndex..<input.endIndex, in: input)
+            if let match = regex.firstMatch(in: input, options: [], range: range) {
+                // Ensure the group index is valid
+                if group < match.numberOfRanges {
+                    let matchRange = match.range(at: group)
+                    if let swiftRange = Range(matchRange, in: input) {
+                        return String(input[swiftRange])
+                    }
+                }
+            }
+        }
+
+        throw Parser.RegexException("No regex matched the input on group \(group)")
+    }
 }

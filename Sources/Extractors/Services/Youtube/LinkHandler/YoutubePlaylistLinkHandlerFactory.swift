@@ -17,11 +17,7 @@ public class YoutubePlaylistLinkHandlerFactory: ListLinkHandlerFactory {
     }
 
     public func getId(_ url: String) throws(ParsingUnsupportedOperation) -> String {
-        do {
-            let urlObj = try Utils.stringToURL(url)
-        } catch {
-
-        }
+        fatalError()
     }
 
 

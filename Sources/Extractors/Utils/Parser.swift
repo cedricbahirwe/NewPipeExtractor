@@ -15,9 +15,9 @@ public class Parser {
 
     private init() {}
 
-    class RegexException: ParsingException, @unchecked Sendable {
-        convenience init(message: String) {
-            self.init(message)
+    public class RegexException: ParsingException, @unchecked Sendable {
+        public init(_ message: String) {
+            super.init(message)
         }
     }
 

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftyJSON
 
 public class YoutubeParsingHelper {
     private init() {}
@@ -58,13 +59,13 @@ public class YoutubeParsingHelper {
     nonisolated(unsafe) private static var hardcodedClientVersionValid: Bool? = nil
 
 
-    private static let innertubeContextClientVersionRegexes: [String] = [
+    private static let INNERTUBE_CONTEXT_CLIENT_VERSION_REGEXES: [String] = [
         #"INNERTUBE_CONTEXT_CLIENT_VERSION":"([0-9\.]+?)"#,
         #"innertube_context_client_version":"([0-9\.]+?)"#,
         #"client.version=([0-9\.]+)"#
     ]
 
-    private static let initialDataRegexes: [String] = [
+    private static let INITIAL_DATA_REGEXES: [String] = [
         #"window\["ytInitialData"\]\s*=\s*(\{.*?\});"#,
         #"var\s*ytInitialData\s*=\s*(\{.*?\});"#
     ]
@@ -79,11 +80,11 @@ public class YoutubeParsingHelper {
     private static let FEED_BASE_USER = "https://www.youtube.com/feeds/videos.xml?user="
 
     // TODO: Should I use NSRegularExpression
-    nonisolated(unsafe) private static let cWebPattern = /&c=WEB/
-    nonisolated(unsafe) private static let cWebEmbeddedPlayerPattern = /&c=WEB_EMBEDDED_PLAYER/
-    nonisolated(unsafe) private static let cTvHtml5PlayerPattern = /&c=TVHTML5/
-    nonisolated(unsafe) private static let cAndroidPattern = /&c=ANDROID/
-    nonisolated(unsafe) private static let cIosPattern = /&c=IOS/
+    nonisolated(unsafe) private static let cWebPattern: Regex = /&c=WEB/
+    nonisolated(unsafe) private static let cWebEmbeddedPlayerPattern: Regex = /&c=WEB_EMBEDDED_PLAYER/
+    nonisolated(unsafe) private static let cTvHtml5PlayerPattern: Regex = /&c=TVHTML5/
+    nonisolated(unsafe) private static let cAndroidPattern: Regex = /&c=ANDROID/
+    nonisolated(unsafe) private static let cIosPattern: Regex = /&c=IOS/
 
 
     private static let GOOGLE_URLS: Set<String> = ["google.", "m.google.", "www.google."]
@@ -332,6 +333,16 @@ public class YoutubeParsingHelper {
             return try extractPlaylistTypeFromPlaylistId(Utils.getQueryValue(from: url, parameterName: "list"))
         } catch {
             throw ParsingException("Could not extract playlist type from malformed url", error)
+        }
+    }
+
+    private static func getInitialData(from html: String) throws -> JsonObject? {
+        do {
+            let stringResult = try Utils.getStringResultFromRegexArray(html, regexStrings: INITIAL_DATA_REGEXES, group: 1)
+            guard let jsonDict = JSON(parseJSON: stringResult).dictionaryObject else { return nil }
+            return JsonObject(jsonDict)
+        } catch {
+            throw ParsingException("Could not get ytInitialData", error)
         }
     }
 
