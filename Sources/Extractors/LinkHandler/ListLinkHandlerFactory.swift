@@ -8,59 +8,31 @@
 import Foundation
 
 public protocol ListLinkHandlerFactory: LinkHandlerFactory {
-
-    // MARK: - To Override
-
-    func fromUrl(_ url: String) throws -> ListLinkHandler
-
-    func getUrl(id: String, contentFilters: [String], sortFilter: String) throws -> String
-
-    func getUrl(id: String, contentFilters: [String], sortFilter: String, baseUrl: String) throws -> String
+    func getUrl(id: String, contentFilters: [String], sortFilter: String) throws(ParsingUnsupportedOperation) -> String
 }
 
 extension ListLinkHandlerFactory {
-
+    func getUrl(id: String, contentFilters: [String], sortFilter: String, baseUrl: String) throws(ParsingUnsupportedOperation) -> String {
+        try getUrl(id: id, contentFilters: contentFilters, sortFilter: sortFilter)
+    }
     // MARK: - Logic
 
-    public func fromUrl(_ url: String) throws -> ListLinkHandler {
-        try fromUrl(url: url)
-    }
-
-    public func fromUrl(_ url: String, _ baseUrl: String) throws -> LinkHandler {
-        try fromUrl(url: url, baseUrl: baseUrl)
-    }
-
-    public func fromId(_ id: String) throws -> LinkHandler {
-       try fromId(id: id)
-    }
-
-    public func fromId(_ id: String, _ baseUrl: String) throws -> LinkHandler {
-        try fromId(id: id, baseUrl: id)
-    }
-
-
-    public func getUrl(_ id: String, _ baseUrl: String) throws -> String {
-        try getUrl(id: id, contentFilters: [], sortFilter: "", baseUrl: baseUrl)
-    }
-
-
-    private func fromUrl(url: String) throws -> ListLinkHandler {
-        let polishedUrl = try Utils.followGoogleRedirectIfNeeded(url)
+    public func fromUrl(url: String) throws(ParsingException) -> ListLinkHandler {
+        let polishedUrl = Utils.followGoogleRedirectIfNeeded(url)
         let baseUrl = try Utils.getBaseUrl(polishedUrl)
-        return try fromUrl(url: polishedUrl, baseUrl: baseUrl)
+        return try fromUrl(polishedUrl, baseUrl)
     }
 
-    private func fromUrl(url: String, baseUrl: String) throws -> ListLinkHandler {
-        return ListLinkHandler(handler: try fromUrl(url, baseUrl))
+    public func fromUrl(_ url: String, _ baseUrl: String) throws(ParsingException) -> ListLinkHandler {
+        ListLinkHandler(handler: try fromId(url, baseUrl))
     }
 
-    private func fromId(id: String) throws -> ListLinkHandler {
-        return ListLinkHandler(handler: try fromId(id))
+    public func fromId(_ id: String) throws(ParsingException) -> ListLinkHandler {
+        ListLinkHandler(handler: try fromId(id))
     }
 
-
-    private func fromId(id: String, baseUrl: String) throws -> ListLinkHandler {
-        return ListLinkHandler(handler: try fromId(id, baseUrl))
+    public func fromId(_ id: String, _ baseUrl: String) throws(ParsingException) -> ListLinkHandler {
+        ListLinkHandler(handler: try fromId(id, baseUrl))
     }
 
     public func fromQuery(id: String, contentFilters: [String], sortFilter: String) throws -> ListLinkHandler {
@@ -79,8 +51,12 @@ extension ListLinkHandlerFactory {
      *
      * @return the url corresponding to id without any filters applied
      */
-    public func getUrl(_ id: String) throws -> String {
+    public func getUrl(_ id: String) throws(ParsingUnsupportedOperation) -> String {
         try getUrl(id: id, contentFilters: [], sortFilter: "")
+    }
+
+    public func getUrl(_ id: String, _ baseUrl: String) throws(ParsingUnsupportedOperation) -> String {
+        try getUrl(id: id, contentFilters: [], sortFilter: "", baseUrl: baseUrl)
     }
 
     /**

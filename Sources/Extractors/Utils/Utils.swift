@@ -23,7 +23,7 @@ public class Utils {
         return url.removingPercentEncoding ?? url
     }
 
-    static func getBaseUrl(_ url: String) throws -> String {
+    static func getBaseUrl(_ url: String) throws(ParsingException) -> String {
         guard let uri = stringToURL(url) else {
             throw ParsingException("Malformed url: \(url)")
         }
@@ -47,13 +47,18 @@ public class Utils {
      - Parameter url: The URL which can possibly be a Google search redirect.
      - Returns: A URL with no Google search redirects.
      */
-    public static func followGoogleRedirectIfNeeded(_ url: String) throws -> String {
-        // If the url is a redirect from a Google search, extract the actual URL
-        if let decodedUrl = stringToURL(url) {
-            if decodedUrl.host?.contains("google") == true && decodedUrl.path == "/url" {
-                let extractedUrl = try Parser.matchGroup1(pattern: "&url=([^&]+)(?:&|$)", input: url)
-                return decodeUrlUtf8(extractedUrl)
+    public static func followGoogleRedirectIfNeeded(_ url: String) -> String {
+        do {
+            // If the url is a redirect from a Google search, extract the actual URL
+            if let decodedUrl = stringToURL(url) {
+                if decodedUrl.host?.contains("google") == true && decodedUrl.path == "/url" {
+                    let extractedUrl = try Parser.matchGroup1(pattern: "&url=([^&]+)(?:&|$)", input: url)
+                    return decodeUrlUtf8(extractedUrl)
+                }
             }
+
+        } catch {
+
         }
 
         // URL is not a Google search redirect

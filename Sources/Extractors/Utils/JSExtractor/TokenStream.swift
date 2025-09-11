@@ -13,6 +13,7 @@ enum ParsingError: Error {
     case unterminatedStringLiteral
     case unterminatedComment
     case invalidUnicodeEscape
+    case invalidURL
 }
 
 public class TokenStream {

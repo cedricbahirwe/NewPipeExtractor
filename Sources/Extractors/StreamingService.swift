@@ -262,8 +262,9 @@ public class StreamingService: CustomStringConvertible {
     }
 
     public func getCommentsExtractor(_ url: String) throws -> CommentsExtractor? {
-        guard let listLinkHandlerFactory = try? getCommentsLHFactory() else { return nil }
-        return try getCommentsExtractor(try listLinkHandlerFactory.fromUrl(url))
+        fatalError()
+//        guard let listLinkHandlerFactory = try? getCommentsLHFactory() else { return nil }
+//        return try getCommentsExtractor(try listLinkHandlerFactory.fromUrl(url))
     }
 
     // MARK: - Utils

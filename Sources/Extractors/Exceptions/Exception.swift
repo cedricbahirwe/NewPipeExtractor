@@ -32,3 +32,21 @@ public enum IOException: Error {
     case fileNotFound
     case unreadable
 }
+
+
+public enum ParsingUnsupportedOperation: Error {
+    case parsing(ParsingException)
+    case unsupportedOperation(UnsupportedOperationException)
+}
+
+
+public struct UnsupportedOperationException: Error, CustomStringConvertible {
+    public let message: String
+
+    public init(_ message: String = "Operation is not supported.") {
+        self.message = message
+    }
+
+    public var description: String { message }
+}
+

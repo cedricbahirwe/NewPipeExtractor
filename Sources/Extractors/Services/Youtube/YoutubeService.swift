@@ -11,4 +11,13 @@ public class YoutubeService: StreamingService, @unchecked Sendable {
         super.init(id, "Youtube", [.audio, .video, .live, .comments])
     }
 
+    public override func getBaseUrl() -> String {
+        return "https://youtube.com"
+    }
+
+
+    public override func getStreamLHFactory() throws -> any LinkHandlerFactory {
+        fatalError()
+    }
+
 }
