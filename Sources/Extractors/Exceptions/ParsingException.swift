@@ -12,4 +12,8 @@ public class ParsingException: ExtractionException, @unchecked Sendable {
     public init(_ message: String, _ cause: Error? = nil) {
         super.init(message, cause)
     }
+
+    static func malformedURL(_ url: String, cause: Error? = nil ) -> ParsingException {
+        ParsingException("Malformed URL: \(url)", cause)
+    }
 }

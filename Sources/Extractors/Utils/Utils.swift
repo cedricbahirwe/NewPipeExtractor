@@ -24,20 +24,27 @@ public class Utils {
     }
 
     static func getBaseUrl(_ url: String) throws(ParsingException) -> String {
-        guard let uri = stringToURL(url) else {
-            throw ParsingException("Malformed url: \(url)")
-        }
-
-        if let scheme = uri.scheme, let host = uri.host {
+        do {
+            let uri = try stringToURL(url)  // using the previous stringToURL function
+            guard let scheme = uri.scheme,
+                  let host = uri.host else {
+                throw ParsingException.malformedURL(url)
+            }
             return "\(scheme)://\(host)"
-        }
+        } catch let error as URLErrorCustom {
+            // Handle "unknown protocol" case
+            let message = error.localizedDescription
+            guard message.starts(with: "no protocol: ") else {
+                throw ParsingException.malformedURL(url, cause: error)
+            }
 
-        // Handle unknown protocol case (e.g., "vnd.youtube")
-        if uri.absoluteString.starts(with: "unknown protocol: ") {
-            return String(uri.absoluteString.dropFirst("unknown protocol: ".count))
+            // Return just the protocol part (similar to Java) (e.g. vnd.youtube)
+            let prefixLength = "no protocol: ".count
+            let startIndex = message.index(message.startIndex, offsetBy: prefixLength)
+            return String(message[startIndex...])
+        } catch {
+            throw ParsingException.malformedURL(url, cause: error)
         }
-
-        throw ParsingException("Malformed url: \(url)")
     }
 
     /**
@@ -50,16 +57,12 @@ public class Utils {
     public static func followGoogleRedirectIfNeeded(_ url: String) -> String {
         do {
             // If the url is a redirect from a Google search, extract the actual URL
-            if let decodedUrl = stringToURL(url) {
-                if decodedUrl.host?.contains("google") == true && decodedUrl.path == "/url" {
-                    let extractedUrl = try Parser.matchGroup1(pattern: "&url=([^&]+)(?:&|$)", input: url)
-                    return decodeUrlUtf8(extractedUrl)
-                }
+            let decodedUrl = try stringToURL(url)
+            if decodedUrl.host?.contains("google") == true && decodedUrl.path == "/url" {
+                let extractedUrl = try Parser.matchGroup1(pattern: "&url=([^&]+)(?:&|$)", input: url)
+                return decodeUrlUtf8(extractedUrl)
             }
-
-        } catch {
-
-        }
+        } catch {}
 
         // URL is not a Google search redirect
         return url
@@ -78,7 +81,80 @@ public class Utils {
         return collection?.isEmpty ?? true
     }
 
-    private static func stringToURL(_ url: String) -> URL? {
-        return URL(string: url)
+    public enum URLErrorCustom: Error {
+        case malformedURL(_ url: String)
     }
+
+    public static func stringToURL(_ url: String) throws(URLErrorCustom) -> URL {
+        if let validURL = URL(string: url) {
+            return validURL
+        }
+
+        // Try prepending https:// if missing scheme
+        if !url.contains("://"), let httpsURL = URL(string: "https://\(url)") {
+            return httpsURL
+        }
+
+        // Otherwise, throw an error
+        throw URLErrorCustom.malformedURL(url)
+    }
+
+    public func isHTTP(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            return false
+        }
+
+        let port = url.port
+        let defaultPort: Int
+        if scheme == "http" {
+            defaultPort = 80
+        } else { // https
+            defaultPort = 443
+        }
+
+        let usesDefaultPort = port == defaultPort
+        let setsNoPort = port == nil
+
+        return usesDefaultPort || setsNoPort
+    }
+
+    /// Returns the value of a URL query parameter by name.
+    /// If a query parameter appears multiple times, only the first occurrence is returned.
+    /// - Parameters:
+    ///   - url: The URL to search.
+    ///   - parameterName: The name of the query parameter to retrieve.
+    /// - Returns: The value of the query parameter, or `nil` if not found.
+    public static func getQueryValue(from url: URL, parameterName: String) -> String? {
+        guard let query = url.query else { return nil }
+
+        for param in query.split(separator: "&") {
+            let parts = param.split(separator: "=", maxSplits: 1)
+            let key = decodeUrlUtf8(String(parts[0]))
+
+            if key == parameterName {
+                if parts.count > 1 {
+                    return decodeUrlUtf8(String(parts[1]))
+                } else {
+                    return nil
+                }
+            }
+        }
+
+        return nil
+    }
+
+
+    /// Removes all non-digit characters from a string.
+    ///
+    /// Examples:
+    /// - `"1 234 567 views"` → `"1234567"`
+    /// - `"$31,133.124"` → `"31133124"`
+    ///
+    /// - Parameter toRemove: The string from which non-digit characters should be removed.
+    /// - Returns: A string that contains only digits.
+    static func removeNonDigitCharacters(_ toRemove: String) -> String {
+        return toRemove.replacingOccurrences(of: "\\D+", with: "", options: .regularExpression)
+    }
+
 }
