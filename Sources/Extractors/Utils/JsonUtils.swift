@@ -101,6 +101,9 @@ public class JsonObject {
     }
 
     // MARK: - Utility Methods
+    public func getDictionary() -> [String: Any] {
+        return data
+    }
 
     /// Retrieves a `JsonArray` for the given key or returns a default value.
     public func getArray(_ key: String, defaultValue: JsonArray = JsonArray()) -> JsonArray {

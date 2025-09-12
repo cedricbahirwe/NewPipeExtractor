@@ -31,7 +31,7 @@ public final class NewPipe {
         preferredContentCountry = c
     }
 
-    public static func getDownloader() -> Downloader? {
+    public static func getDownloader() -> Downloader! {
         return downloader
     }
 

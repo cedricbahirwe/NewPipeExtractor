@@ -336,7 +336,7 @@ public class YoutubeParsingHelper {
         }
     }
 
-    private static func getInitialData(from html: String) throws -> JsonObject? {
+    private static func getInitialData(_ html: String) throws -> JsonObject? {
         do {
             let stringResult = try Utils.getStringResultFromRegexArray(html, regexStrings: INITIAL_DATA_REGEXES, group: 1)
             guard let jsonDict = JSON(parseJSON: stringResult).dictionaryObject else { return nil }
@@ -346,6 +346,311 @@ public class YoutubeParsingHelper {
         }
     }
 
+    public static func isHardcodedClientVersionValid() async throws -> Bool {
+        if let cached = hardcodedClientVersionValid {
+            return cached
+        }
+
+        // Build JSON body (similar to JsonWriter in Java)
+        let json: [String: Any] = [
+            "context": [
+                "client": [
+                    "hl": "en-GB",
+                    "gl": "GB",
+                    "clientName": ClientsConstants.WEB_CLIENT_NAME,
+                    "clientVersion": ClientsConstants.WEB_HARDCODED_CLIENT_VERSION,
+                    "platform": ClientsConstants.DESKTOP_CLIENT_PLATFORM,
+                    "utcOffsetMinutes": 0
+                ],
+                "request": [
+                    "internalExperimentFlags": [],
+                    "useSsl": true
+                ],
+                "user": [
+                    "lockedSafetyMode": false
+                ]
+            ],
+            "fetchLiveState": true
+        ]
+
+        let body = try JSONSerialization.data(withJSONObject: json, options: [])
+
+        let headers = getClientHeaders(ClientsConstants.WEB_CLIENT_ID,
+                                       ClientsConstants.WEB_HARDCODED_CLIENT_VERSION)
+
+        let response = try await NewPipe.getDownloader().postWithContentTypeJson(
+            url: "\(YOUTUBEI_V1_URL)guide?\(DISABLE_PRETTY_PRINT_PARAMETER)",
+            headers: headers,
+            dataToSend: body
+        )
+
+        let responseBody = response.responseBody
+        let responseCode = response.responseCode
+
+        // Match the Java check: >5000 chars and HTTP 200
+        let isValid = responseBody.count > 5000 && responseCode == 200
+        hardcodedClientVersionValid = isValid
+        return isValid
+    }
+
+    /// Extracts the YouTube WEB InnerTube client version from `sw.js`.
+    /// - Throws: `ExtractionError` if the request fails or the client version cannot be extracted.
+    public static func extractClientVersionFromSwJs() async throws {
+        if clientVersionExtracted {
+            return
+        }
+
+        let url = "https://www.youtube.com/sw.js"
+        let headers = getOriginReferrerHeaders(url: "https://www.youtube.com")
+
+        let response = try await NewPipe.getDownloader().get(url, headers: headers)
+        let responseBody = response.responseBody
+
+        do {
+            clientVersion = try Utils.getStringResultFromRegexArray(
+                responseBody,
+                regexStrings: INNERTUBE_CONTEXT_CLIENT_VERSION_REGEXES,
+                group: 1
+            )
+        } catch {
+            throw ParsingException("Could not extract YouTube WEB InnerTube client version " + "from sw.js", error)
+        }
+
+        clientVersionExtracted = true
+    }
+
+    /// Extracts the YouTube WEB InnerTube client version from the HTML search results page.
+    /// - Throws: `ExtractionError` if the client version cannot be extracted.
+    private static func extractClientVersionFromHtmlSearchResultsPage() async throws {
+        if clientVersionExtracted {
+            return
+        }
+
+        // Don't provide a search term to minimize response size
+        let url = "https://www.youtube.com/results?search_query=&ucbcb=1"
+        let html = try await NewPipe.getDownloader().get(url, headers: getCookieHeader()).responseBody
+
+        // Extract initial JSON data
+        let initialData = try getInitialData(html)?.getDictionary() as? [String: Any]
+        let responseContext = initialData?["responseContext"] as? [String: Any]
+        let serviceTrackingParams = responseContext?["serviceTrackingParams"] as? [[String: Any]] ?? []
+
+        // Try to get version from initial data first
+        clientVersion = getClientVersionFromServiceTrackingParam(
+            serviceTrackingParams: serviceTrackingParams,
+            serviceName: "CSI",
+            clientVersionKey: "cver"
+        )
+
+        // Fallback using regex on HTML
+        if clientVersion == nil {
+            do {
+                clientVersion = try Utils.getStringResultFromRegexArray(
+                    html,
+                    regexStrings: INNERTUBE_CONTEXT_CLIENT_VERSION_REGEXES,
+                    group: 1
+                )
+            } catch {
+                // Ignore
+            }
+        }
+
+        // Fallback to shortened client version
+        if Utils.isNullOrEmpty(clientVersion) {
+            clientVersion = getClientVersionFromServiceTrackingParam(
+                serviceTrackingParams: serviceTrackingParams,
+                serviceName: "ECATCHER",
+                clientVersionKey: "client.version"
+            )
+        }
+
+        guard clientVersion == nil else {
+            throw ParsingException("Could not extract YouTube WEB InnerTube client version from HTML search results page")
+        }
+
+        clientVersionExtracted = true
+    }
+
+
+    /// Returns the client version from a stream of service tracking parameters.
+    /// - Parameters:
+    ///   - serviceTrackingParams: An array of JSON dictionaries representing the service tracking params.
+    ///   - serviceName: The name of the service to look for.
+    ///   - clientVersionKey: The key that stores the client version.
+    /// - Returns: The first matching client version, or `nil` if not found.
+    private static func getClientVersionFromServiceTrackingParam(
+        serviceTrackingParams: [ [String: Any] ],
+        serviceName: String,
+        clientVersionKey: String
+    ) -> String? {
+        for serviceTrackingParam in serviceTrackingParams {
+            if (serviceTrackingParam["service"] as? String ?? "") != serviceName {
+                continue
+            }
+
+            guard let params = serviceTrackingParam["params"] as? [[String: Any]] else {
+                continue
+            }
+
+            for param in params {
+                if (param["key"] as? String ?? "") == clientVersionKey,
+                   let value = param["value"] as? String,
+                   !value.isEmpty {
+                    return value
+                }
+            }
+        }
+
+        return nil
+    }
+
+    /// Gets the client version used by the YouTube website for InnerTube requests.
+    /// - Throws: `IOException` or `ExtractionException` if the client version cannot be obtained.
+    /// - Returns: The current YouTube client version.
+    public static func getClientVersion() async throws -> String {
+        if !Utils.isNullOrEmpty(clientVersion) {
+            return clientVersion
+        }
+
+        // Always extract the latest client version, by trying first to extract it from the
+        // JavaScript service worker, then from HTML search results page as a fallback, to prevent
+        // fingerprinting based on the client version used
+        do {
+            try await extractClientVersionFromSwJs()
+        } catch {
+            try await extractClientVersionFromHtmlSearchResultsPage()
+        }
+
+        if clientVersionExtracted, let version = clientVersion {
+            return version
+        }
+
+        // Fallback to the hardcoded one if it is valid
+        if try await isHardcodedClientVersionValid() {
+            clientVersion = ClientsConstants.WEB_HARDCODED_CLIENT_VERSION
+            return clientVersion
+        }
+
+        throw ExtractionException("Could not get YouTube WEB client version")
+    }
+
+    /// - Note: **Only used in tests.**
+    ///
+    /// Quick-and-dirty solution to reset global state between test classes.
+    ///
+    /// This is needed for the mocks because in order to reach that state, a network request has to
+    /// be made. If the global state is not reset and the `RecordingDownloader` is used,
+    /// then only the first test class has that request recorded. Running other tests with mocks
+    /// will fail because the mock is missing.
+    public static func resetClientVersion() {
+        clientVersion = nil
+        clientVersionExtracted = false
+    }
+
+
+    /// Returns a dictionary containing the `Origin` and `Referer` headers
+    /// both set to the given URL.
+    /// - Parameter url: The URL to be used as the origin and referrer.
+    /// - Returns: A dictionary suitable for HTTP headers.
+    public static func getOriginReferrerHeaders(url: String) -> [String: [String]] {
+        let urlList = [url]
+        return [
+            "Origin": urlList,
+            "Referer": urlList
+        ]
+    }
+
+    /// Only used in tests.
+    public static func setNumberGenerator(_ random: SystemRandomNumberGenerator) {
+        numberGenerator = random
+    }
+
+    public static func isHardcodedYoutubeMusicClientVersionValid() async throws -> Bool {
+        let url = "https://music.youtube.com/youtubei/v1/music/get_search_suggestions?\(DISABLE_PRETTY_PRINT_PARAMETER)"
+
+        // Build JSON body
+        let jsonBody: [String: Any] = [
+            "context": [
+                "client": [
+                    "clientName": ClientsConstants.WEB_REMIX_CLIENT_NAME,
+                    "clientVersion": ClientsConstants.WEB_REMIX_HARDCODED_CLIENT_VERSION,
+                    "hl": "en-GB",
+                    "gl": "GB",
+                    "platform": ClientsConstants.DESKTOP_CLIENT_PLATFORM,
+                    "utcOffsetMinutes": 0
+                ],
+                "request": [
+                    "internalExperimentFlags": [],
+                    "useSsl": true
+                ],
+                "user": [
+                    "lockedSafetyMode": false
+                ]
+            ],
+            "input": ""
+        ]
+
+        let bodyData = try JSONSerialization.data(withJSONObject: jsonBody)
+
+        // Build headers
+        var headers = getOriginReferrerHeaders(url: YOUTUBE_MUSIC_URL)
+        headers.merge(getClientHeaders(ClientsConstants.WEB_REMIX_CLIENT_ID,
+                                       ClientsConstants.WEB_HARDCODED_CLIENT_VERSION)) { _, new in new }
+
+        // Send POST request
+        let response = try await NewPipe.getDownloader().postWithContentTypeJson(url: url,
+                                                                          headers: headers,
+                                                                          dataToSend: bodyData)
+        // Ensure valid response
+        return response.responseBody.count > 500 && response.responseCode == 200
+    }
+
+
+    /// Returns a dictionary containing the `X-YouTube-Client-Name` and
+    /// `X-YouTube-Client-Version` headers.
+    /// - Parameters:
+    ///   - name: The X-YouTube-Client-Name value.
+    ///   - version: The X-YouTube-Client-Version value.
+    /// - Returns: A dictionary suitable for HTTP headers.
+    public static func getClientHeaders(_ name: String, _ version: String) -> [String: [String]] {
+        return [
+            "X-YouTube-Client-Name": [name],
+            "X-YouTube-Client-Version": [version]
+        ]
+    }
+
+    /// Creates a dictionary with the required cookie header.
+    /// - Returns: A dictionary containing the "Cookie" header.
+    public static func getCookieHeader() -> [String: [String]] {
+        return ["Cookie": [generateConsentCookie()]]
+    }
+
+    /// Generates the YouTube consent cookie.
+    /// - Returns: The "SOCS" cookie string based on whether consent was accepted.
+    public static func generateConsentCookie() -> String {
+        let cookieValue: String
+        if isConsentAccepted() {
+            // CAISAiAD means that the user configured manually cookies on YouTube,
+            // regardless of the consent values.
+            // This value surprisingly allows extraction of mixes and some YouTube Music
+            // playlists in the same way as when a user allows all cookies.
+            cookieValue = "CAISAiAD"
+        } else {
+            // CAE= means that the user rejected all non-necessary cookies with the
+            // "Reject all" button on the consent page.
+            cookieValue = "CAE="
+        }
+
+        return "SOCS=" + cookieValue
+    }
+
+
+    /// Gets the value of the consent's acceptance.
+    /// - Returns: The current consent acceptance value.
+    /// - SeeAlso: `setConsentAccepted(_:)`
+    public static func isConsentAccepted() -> Bool {
+        return consentAccepted
+    }
 
     /// Sometimes, YouTube provides URLs which use Google's cache. They look like
     /// `https://webcache.googleusercontent.com/search?q=cache:CACHED_URL`

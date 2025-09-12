@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A Data class used to hold the results from requests made by the Downloader implementation.
 public struct Response {
     public let responseCode: Int
     public let responseMessage: String

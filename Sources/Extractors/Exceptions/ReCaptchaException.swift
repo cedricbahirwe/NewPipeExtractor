@@ -8,14 +8,11 @@
 import Foundation
 
 public class ReCaptchaException: ExtractionException, @unchecked Sendable {
-    private let url: URL
+    public let urlString: String
 
-    public init(url: URL) {
-        self.url = url
-        super.init(url.absoluteString)
+    public init(_ message: String, _ urlString: String) {
+        self.urlString = urlString
+        super.init(message)
     }
 
-    func getUrl() -> URL {
-        url
-    }
 }
