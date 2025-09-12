@@ -10,6 +10,26 @@ import Foundation
 public typealias JsonDict = [String: Any]
 
 public enum JsonUtils {
+    /// Converts a JSON string into a Swift dictionary ([String: Any]).
+    ///
+    /// - Parameter responseBody: The JSON string to parse.
+    /// - Throws: `ParsingException` if the JSON cannot be parsed.
+    /// - Returns: A dictionary representing the JSON object.
+    public static func toJsonObject(_ responseBody: String) throws -> [String: Any] {
+        guard let data = responseBody.data(using: .utf8) else {
+            throw ParsingException("Invalid string encoding")
+        }
+        do {
+            if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                return jsonObject
+            } else {
+                throw ParsingException("JSON is not an object")
+            }
+        } catch {
+            throw ParsingException("Could not parse JSON", error)
+        }
+    }
+
     public static func getString(json object: JsonObject, path: String) throws -> String {
         try getInstanceOf(object, path: path, type: String.self)
     }

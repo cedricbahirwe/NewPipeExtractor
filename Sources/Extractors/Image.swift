@@ -39,7 +39,7 @@ public final class Image: Codable {
     ///   - height: The height of the image.
     ///   - width: The width of the image.
     ///   - estimatedResolutionLevel: The estimated resolution level of the image. Must not be nil.
-    public init(url: String, height: Int, width: Int, estimatedResolutionLevel: ResolutionLevel) {
+    public init(_ url: String, _ height: Int, _ width: Int, _ estimatedResolutionLevel: ResolutionLevel) {
         guard !url.isEmpty else {
             fatalError("URL must not be empty")
         }
@@ -71,10 +71,10 @@ public enum ResolutionLevel: String, Codable {
 
     /// Returns the appropriate `ResolutionLevel` based on the given height.
     ///
-    /// - Parameter heightPx: The height of the image in pixels.
+    /// - Parameter height: The height of the image in pixels.
     /// - Returns: The `ResolutionLevel` corresponding to the provided height.
-    public static func from(height heightPx: Int) -> ResolutionLevel {
-        switch heightPx {
+    public static func fromHeight(_ height: Int) -> ResolutionLevel {
+        switch height {
         case ..<1:
             return .unknown
         case 1..<175:

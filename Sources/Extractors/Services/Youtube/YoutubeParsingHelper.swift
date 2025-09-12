@@ -605,6 +605,355 @@ public class YoutubeParsingHelper {
         return response.responseBody.count > 500 && response.responseCode == 200
     }
 
+    public static func getYoutubeMusicClientVersion() async throws -> String {
+        if !Utils.isNullOrEmpty(youtubeMusicClientVersion) {
+            return youtubeMusicClientVersion
+        }
+
+        // First, try the hardcoded client version
+        if try await isHardcodedYoutubeMusicClientVersionValid() {
+            youtubeMusicClientVersion = ClientsConstants.WEB_REMIX_HARDCODED_CLIENT_VERSION
+            return youtubeMusicClientVersion
+        }
+
+        do {
+            // Try to extract from sw.js
+            let url = "https://music.youtube.com/sw.js"
+            let headers = getOriginReferrerHeaders(url: YOUTUBE_MUSIC_URL)
+            let response = try await NewPipe.getDownloader().get(url, headers: headers).responseBody
+
+            youtubeMusicClientVersion = try Utils.getStringResultFromRegexArray(
+                response,
+                regexStrings: INNERTUBE_CONTEXT_CLIENT_VERSION_REGEXES,
+                group: 1)
+        } catch {
+            // Fallback to HTML search results page
+            let url = "https://music.youtube.com/?ucbcb=1"
+            let html = try await NewPipe.getDownloader().get(url, headers: getCookieHeader()).responseBody
+
+            youtubeMusicClientVersion = try Utils.getStringResultFromRegexArray(
+                html,
+                regexStrings: INNERTUBE_CONTEXT_CLIENT_VERSION_REGEXES,
+                group: 1)
+        }
+
+        return youtubeMusicClientVersion
+    }
+
+    public static  func getUrlFromNavigationEndpoint(_ navigationEndpoint: [String: Any]) -> String? {
+        if let urlEndpoint = navigationEndpoint["urlEndpoint"] as? [String: Any],
+           var internUrl = urlEndpoint["url"] as? String {
+
+            if internUrl.hasPrefix("https://www.youtube.com/redirect?") {
+                // remove https://www.youtube.com part to fall in the next if block
+                internUrl = String(internUrl.dropFirst(23))
+            }
+
+            if internUrl.hasPrefix("/redirect?") {
+                internUrl = String(internUrl.dropFirst(10))
+                let params = internUrl.split(separator: "&")
+                for param in params {
+                    let keyValue = param.split(separator: "=")
+                    if keyValue.count == 2, keyValue[0] == "q" {
+                        return keyValue[1].removingPercentEncoding
+                    }
+                }
+            } else if internUrl.hasPrefix("http") {
+                return internUrl
+            } else if internUrl.hasPrefix("/channel") || internUrl.hasPrefix("/user") || internUrl.hasPrefix("/watch") {
+                return "https://www.youtube.com" + internUrl
+            }
+        }
+
+        if let browseEndpoint = navigationEndpoint["browseEndpoint"] as? [String: Any] {
+            let canonicalBaseUrl = browseEndpoint["canonicalBaseUrl"] as? String
+            if let browseId = browseEndpoint["browseId"] as? String {
+                if browseId.hasPrefix("UC") {
+                    return "https://www.youtube.com/channel/" + browseId
+                } else if browseId.hasPrefix("VL") {
+                    return "https://www.youtube.com/playlist?list=" + browseId.dropFirst(2)
+                }
+            }
+
+            if let canonicalBaseUrl = canonicalBaseUrl, !canonicalBaseUrl.isEmpty {
+                return "https://www.youtube.com" + canonicalBaseUrl
+            }
+        }
+
+        if let watchEndpoint = navigationEndpoint["watchEndpoint"] as? [String: Any],
+           let videoId = watchEndpoint["videoId"] as? String {
+            var url = "https://www.youtube.com/watch?v=" + videoId
+            if let playlistId = watchEndpoint["playlistId"] as? String {
+                url += "&list=" + playlistId
+            }
+            if let startTime = watchEndpoint["startTimeSeconds"] as? Int {
+                url += "&t=" + String(startTime)
+            }
+            return url
+        }
+
+        if let watchPlaylistEndpoint = navigationEndpoint["watchPlaylistEndpoint"] as? [String: Any],
+           let playlistId = watchPlaylistEndpoint["playlistId"] as? String {
+            return "https://www.youtube.com/playlist?list=" + playlistId
+        }
+
+        if let commandMetadata = navigationEndpoint["commandMetadata"] as? [String: Any],
+           let webCommandMetadata = commandMetadata["webCommandMetadata"] as? [String: Any],
+           let url = webCommandMetadata["url"] as? String {
+            return "https://www.youtube.com" + url
+        }
+
+        return nil
+    }
+
+    public static func getTextFromObject(_ textObject: [String: Any]?, html: Bool) -> String? {
+        guard let textObject = textObject, !textObject.isEmpty else {
+            return nil
+        }
+
+        if let simpleText = textObject["simpleText"] as? String {
+            return simpleText
+        }
+
+        guard let runs = textObject["runs"] as? [[String: Any]], !runs.isEmpty else {
+            return nil
+        }
+
+        var textBuilder = ""
+
+        for run in runs {
+            var text = run["text"] as? String ?? ""
+
+            if html {
+                if let navigationEndpoint = run["navigationEndpoint"] as? [String: Any],
+                   let url = getUrlFromNavigationEndpoint(navigationEndpoint) {
+                    text = "<a href=\"\(Entities.escape(url))\">\(Entities.escape(text))</a>"
+                }
+
+                let bold = run["bold"] as? Bool ?? false
+                let italic = run["italics"] as? Bool ?? false
+                let strikethrough = run["strikethrough"] as? Bool ?? false
+
+                if bold { textBuilder += "<b>" }
+                if italic { textBuilder += "<i>" }
+                if strikethrough { textBuilder += "<s>" }
+
+                textBuilder += text
+
+                if strikethrough { textBuilder += "</s>" }
+                if italic { textBuilder += "</i>" }
+                if bold { textBuilder += "</b>" }
+            } else {
+                textBuilder += text
+            }
+        }
+
+        var finalText = textBuilder
+
+        if html {
+            finalText = finalText.replacingOccurrences(of: "\n", with: "<br>")
+            finalText = finalText.replacingOccurrences(of: "  ", with: " &nbsp;")
+        }
+
+        return finalText
+    }
+
+
+    public static func getTextFromObjectOrThrow(_ textObject: [String: Any]?, error: String) throws -> String {
+        if let result = getTextFromObject(textObject, html: false) {
+            return result
+        } else {
+            throw ParsingException("Could not extract text: \(error)")
+        }
+    }
+
+    public static func getTextFromObject(from textObject: [String: Any]) -> String? {
+        return getTextFromObject(textObject, html: false)
+    }
+
+    public static func getUrlFromObject(_ textObject: [String: Any]?) -> String? {
+        guard let textObject = textObject else {
+            return nil
+        }
+
+        guard let runs = textObject["runs"] as? [[String: Any]], !runs.isEmpty else {
+            return nil
+        }
+
+        for textPart in runs {
+            if let navigationEndpoint = textPart["navigationEndpoint"] as? [String: Any],
+               let url = getUrlFromNavigationEndpoint(navigationEndpoint),
+               !url.isEmpty {
+                return url
+            }
+        }
+
+        return nil
+    }
+
+    public static func getTextAtKey(_ jsonObject: [String: Any], theKey: String) -> String? {
+        if let value = jsonObject[theKey] as? String {
+            return value
+        } else if let nestedObject = jsonObject[theKey] as? [String: Any] {
+            return getTextFromObject(from: nestedObject)
+        } else {
+            return nil
+        }
+    }
+
+    public static func fixThumbnailUrl(_ thumbnailUrl: String) -> String {
+        var result = thumbnailUrl
+
+        if result.hasPrefix("//") {
+            result.removeFirst(2)
+        }
+
+        if result.hasPrefix("http://") {
+            result = Utils.replaceHttpWithHttps(result)
+        } else if !result.hasPrefix("https://") {
+            result = "https://" + result
+        }
+
+        return result
+    }
+
+    /// Get thumbnails from a `JsonObject` representing a YouTube `InfoItem`.
+    ///
+    /// Thumbnails are got from the `thumbnails` array inside the `thumbnail` object of the YouTube `InfoItem`,
+    /// using `getImagesFromThumbnailsArray`.
+    ///
+    /// - Parameter infoItem: a YouTube `InfoItem` represented as a `JsonObject`
+    /// - Returns: an array of `Image`s found in the `thumbnails` array
+    /// - Throws: `ParsingException` if an error occurs when extracting thumbnails
+    public static func getThumbnailsFromInfoItem(_ infoItem: [String: Any]) throws -> [Image] {
+        do {
+            guard let thumbnailObject = infoItem["thumbnail"] as? [String: Any],
+                  let thumbnailsArray = thumbnailObject["thumbnails"] as? [[String: Any]] else {
+                throw ParsingException("Could not get thumbnails from InfoItem")
+            }
+            return getImagesFromThumbnailsArray(thumbnailsArray)
+        } catch let error {
+            throw ParsingException("Could not get thumbnails from InfoItem", error)
+        }
+    }
+
+
+    /// Get images from a YouTube `thumbnails` array.
+    ///
+    /// The properties of the `Image`s created will be set using the corresponding ones of
+    /// thumbnail items.
+    ///
+    /// - Parameter thumbnails: a YouTube `thumbnails` array
+    /// - Returns: an array of `Image`s extracted from the given array
+    public static func getImagesFromThumbnailsArray(_ thumbnails: [[String: Any]]) -> [Image] {
+        thumbnails.compactMap { thumbnail -> Image? in
+            guard let url = thumbnail["url"] as? String, !url.isEmpty else {
+                return nil
+            }
+
+            let height = thumbnail["height"] as? Int ?? Image.HEIGHT_UNKNOWN
+            let width = thumbnail["width"] as? Int ?? Image.WIDTH_UNKNOWN
+            let fixedUrl = fixThumbnailUrl(url)
+            let resolution = ResolutionLevel.fromHeight(height)
+
+            return Image(fixedUrl, height, width, resolution)
+        }
+    }
+
+    /// Get a valid JSON response body from a `Response`.
+    ///
+    /// - Parameter response: the `Response` object
+    /// - Returns: the response body as a `String`
+    /// - Throws: `ParsingException`, `MalformedURLException`, or `ContentNotAvailableException`
+    public static func getValidJsonResponseBody(_ response: Response) throws -> String {
+        if response.responseCode == 404 {
+            throw ContentNotAvailableException(
+                "Not found (\"\(response.responseCode) \(response.responseMessage)\")"
+            )
+        }
+
+        let responseBody = response.responseBody
+        if responseBody.count < 50 { // Ensure to have a valid response
+            throw ParsingException("JSON response is too short")
+        }
+
+        // Check if the request was redirected to the error page
+        if let latestUrl = URL(string: response.latestUrl), latestUrl.host?.lowercased() == "www.youtube.com" {
+            let path = latestUrl.path.lowercased()
+            if path == "/oops" || path == "/error" {
+                throw ContentNotAvailableException("Content unavailable")
+            }
+        }
+
+        if let contentType = response.getHeader("Content-Type")?.lowercased(),
+           contentType.contains("text/html") {
+            throw ParsingException(
+                "Got HTML document, expected JSON response (latest url was: \"\(response.latestUrl)\")"
+            )
+        }
+
+        return responseBody
+    }
+
+    /// Get a JSON response from a POST request to a YouTube endpoint.
+    ///
+    /// - Parameters:
+    ///   - endpoint: the YouTube endpoint path
+    ///   - body: the POST body data
+    ///   - localization: the localization object
+    /// - Returns: a `JsonObject` representing the response
+    /// - Throws: `IOException`, `ExtractionException`, or parsing errors
+    public static func getJsonPostResponse(endpoint: String, body: Data, localization: Localization) async throws -> [String: Any] {
+        let headers = try await getYouTubeHeaders()
+
+        let urlString = "\(YOUTUBEI_V1_URL)\(endpoint)?\(DISABLE_PRETTY_PRINT_PARAMETER)"
+        let response = try await NewPipe.getDownloader().postWithContentTypeJson(url: urlString, headers: headers, dataToSend: body, localization: localization)
+
+        let validResponseBody = try getValidJsonResponseBody(response)
+        return try JsonUtils.toJsonObject(validResponseBody)
+    }
+
+    /// Returns a dictionary containing the required YouTube headers, including the
+    /// `CONSENT` cookie to prevent redirects to `consent.youtube.com`.
+    ///
+    /// - Throws: `ExtractionException` or `IOException` if the client version cannot be retrieved.
+    /// - Returns: a dictionary of HTTP headers.
+    public static func getYouTubeHeaders() async throws -> [String: [String]] {
+        var headers = try await getClientInfoHeaders()
+        headers["Cookie"] = [generateConsentCookie()]
+        return headers
+    }
+
+    public static func getJsonPostResponse(
+        endpoint: String,
+        queryParameters: [String],
+        body: Data,
+        localization: Localization
+    ) async throws -> [String: Any] {
+
+        let headers = try await getYouTubeHeaders()
+
+        let queryParametersString: String
+        if queryParameters.isEmpty {
+            queryParametersString = "?\(DISABLE_PRETTY_PRINT_PARAMETER)"
+        } else {
+            queryParametersString = "?" + queryParameters.joined(separator: "&") + "&" + DISABLE_PRETTY_PRINT_PARAMETER
+        }
+
+        let urlString = "\(YOUTUBEI_V1_URL)\(endpoint)\(queryParametersString)"
+
+        let response = try await NewPipe.getDownloader().postWithContentTypeJson(
+            url: urlString,
+            headers: headers,
+            dataToSend: body,
+            localization: localization
+        )
+
+        let responseBody = try getValidJsonResponseBody(response)
+
+        return try JsonUtils.toJsonObject(responseBody)
+    }
+
 
     /// Returns a dictionary containing the `X-YouTube-Client-Name` and
     /// `X-YouTube-Client-Version` headers.
@@ -642,6 +991,17 @@ public class YoutubeParsingHelper {
         }
 
         return "SOCS=" + cookieValue
+    }
+
+    /// Returns a dictionary containing the `X-YouTube-Client-Name`,
+    /// `X-YouTube-Client-Version`, `Origin`, and `Referer` headers.
+    ///
+    /// - Throws: `ExtractionException` or `IOException` if the client version cannot be retrieved.
+    /// - Returns: a dictionary of HTTP headers.
+    public static func getClientInfoHeaders() async throws -> [String: [String]] {
+        var headers = getOriginReferrerHeaders(url: "https://www.youtube.com")
+        await headers.merge(getClientHeaders(ClientsConstants.WEB_CLIENT_ID, try getClientVersion())) { _, new in new }
+        return headers
     }
 
 

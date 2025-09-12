@@ -119,6 +119,14 @@ public class Utils {
         return usesDefaultPort || setsNoPort
     }
 
+    public static func replaceHttpWithHttps(_ url: String) -> String {
+        if url.hasPrefix("http://") {
+            return "https://" + url.dropFirst("http://".count)
+        }
+
+        return url
+    }
+
     /// Returns the value of a URL query parameter by name.
     /// If a query parameter appears multiple times, only the first occurrence is returned.
     /// - Parameters:
@@ -236,5 +244,17 @@ public class Utils {
         }
 
         throw Parser.RegexException("No regex matched the input on group \(group)")
+    }
+}
+
+public enum Entities {
+    public static func escape(_ text: String) -> String {
+        var escaped = text
+        escaped = escaped.replacingOccurrences(of: "&", with: "&amp;")
+        escaped = escaped.replacingOccurrences(of: "<", with: "&lt;")
+        escaped = escaped.replacingOccurrences(of: ">", with: "&gt;")
+        escaped = escaped.replacingOccurrences(of: "\"", with: "&quot;")
+        escaped = escaped.replacingOccurrences(of: "'", with: "&#x27;")
+        return escaped
     }
 }
