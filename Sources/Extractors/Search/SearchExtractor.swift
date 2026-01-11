@@ -8,7 +8,7 @@
 import Foundation
 
 /// Abstract base class for search extractors.
-public class SearchExtractor<R: InfoItem>: ListExtractor<R> {
+public class SearchExtractor: ListExtractor<InfoItem> {
 
     /// Exception thrown when nothing is found.
     public class NothingFoundException: ExtractionException, @unchecked Sendable {}
@@ -18,8 +18,8 @@ public class SearchExtractor<R: InfoItem>: ListExtractor<R> {
     /// - Parameters:
     ///   - service: The streaming service associated with the extractor.
     ///   - linkHandler: The search query handler.
-    public init(service: any StreamingService, linkHandler: SearchQueryHandler) {
-        super.init(service: service, linkHandler: linkHandler)
+    public init(service: StreamingService, linkHandler: SearchQueryHandler) {
+        super.init(service, linkHandler)
     }
 
     /// Retrieves the search string from the link handler.

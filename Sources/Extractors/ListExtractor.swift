@@ -7,20 +7,6 @@
 
 import Foundation
 
-// MARK: - Constants
-
-public enum ListExtractorConstants {
-    /// Constant that should be returned whenever a list has an unknown number of items.
-    public static let ITEM_COUNT_UNKNOWN: Int64 = -1
-
-    /// Constant that should be returned whenever a list has an infinite number of items.
-    /// For example, a YouTube mix.
-    public static let ITEM_COUNT_INFINITE: Int64 = -2
-
-    /// Constant that should be returned whenever a list has an unknown number of items bigger than 100.
-    public static let ITEM_COUNT_MORE_THAN_100: Int64 = -3
-}
-
 public enum InfoItemsPageConstants {
     /// An empty representation of an `InfoItemsPage`.
     static let EMPTY = InfoItemsPage<InfoItem>(
@@ -32,45 +18,103 @@ public enum InfoItemsPageConstants {
 
 /// Base class for extractors that have a list (e.g., playlists, users).
 /// - Parameter R: The info item type this list extractor provides.
-open class ListExtractor<R: InfoItem>: Extractor {
+public class ListExtractor<R: InfoItem>: Extractor {
+    // TODO: - Review these constans as in swift we can use type safety
+
+    /// Constant that should be returned whenever a list has an unknown number of items.
+    public static var ITEM_COUNT_UNKNOWN: Int { -1 }
+    /// Constant that should be returned whenever a list has an infinite number of items.
+    /// For example, a YouTube mix.
+    public static var ITEM_COUNT_INFINITE: Int { -2 }
+
+    /// Constant that should be returned whenever a list has an unknown number of items bigger than 100.
+//    public static var ITEM_COUNT_MORE_THAN_100: Int { -3 }
+
     // MARK: - Initializer
 
-    /// Initializes the list extractor with the specified service and link handler.
-    /// - Parameters:
-    ///   - service: The streaming service.
-    ///   - linkHandler: The link handler for the list.
-    init(service: any StreamingService, linkHandler: ListLinkHandler) {
-        super.init(service: service, linkHandler: linkHandler)
+    public init(_ service: StreamingService, _ linkHandler: ListLinkHandler) {
+        super.init(service, linkHandler)
     }
 
     // MARK: - Abstract Methods
 
-    /// A page corresponding to the initial page where the items are from the initial request
-    /// and the nextPage relative to it.
+    /// A ``InfoItemsPage`` corresponding to the initial page
+    /// where the items are from the initial request and the nextPage relative to it.
     ///
-    /// - Throws: `IOException` or `ExtractionException` if an error occurs during extraction.
-    /// - Returns: An `InfoItemsPage` corresponding to the initial page.
-    func getInitialPage() throws -> InfoItemsPage<R> {
+    /// - Returns: An ``InfoItemsPage`` corresponding to the initial page.
+    public func getInitialPage() throws(IOExtractionException) -> InfoItemsPage<R> {
         fatalError("getInitialPage() must be overridden by subclasses")
     }
 
     /// Gets a list of items corresponding to the specific requested page.
     ///
-    /// - Parameter page: The page to retrieve.
+    /// - Parameter ``Page``:  any page got from the exclusive implementation of the list extractor
     /// - Throws: `IOException` or `ExtractionException` if an error occurs during extraction.
-    /// - Returns: An `InfoItemsPage` corresponding to the requested page.
-    func getPage(_ page: Page) throws -> InfoItemsPage<R> {
+    /// - Returns: An ``InfoItemsPage`` corresponding to the requested page.
+    /// - SeeAlso: ``InfoItemsPage/getNextPage()``
+    public func getPage(_ page: Page) throws -> InfoItemsPage<R> {
         fatalError("getPage(_:) must be overridden by subclasses")
     }
 
-    // MARK: - Overridden Methods
-
-    /// Returns the link handler as a `ListLinkHandler`.
-    /// - Returns: The `ListLinkHandler` for the list extractor.
     public override func getLinkHandler() -> ListLinkHandler {
-        return super.getLinkHandler() as! ListLinkHandler
+        super.getLinkHandler() as! ListLinkHandler
     }
 }
+
+//extension ListExtractor {
+//    public class InfoItemsPage<T: InfoItem> {
+//        // Static EMPTY page for InfoItem
+//        private static let EMPTY = InfoItemsPage<InfoItem>(
+//            itemsList: [],
+//            nextPage: nil,
+//            errors: []
+//        )
+//
+//        /// A convenient method that returns a representation of an empty page.
+//        static func emptyPage<U: InfoItem>() -> InfoItemsPage<U> {
+//            return EMPTY as! InfoItemsPage<U>
+//        }
+//
+//        /// The current list of items of this page
+//        private let itemsList: [T]
+//
+//        /// Url pointing to the next page relative to this one
+//        private let nextPage: Page?
+//
+//        /// Errors that happened during the extraction
+//        private let errors: [Error]
+//
+//        init(itemsList: [T], nextPage: Page?, errors: [Error]) {
+//            self.itemsList = itemsList
+//            self.nextPage = nextPage
+//            self.errors = errors
+//        }
+//
+//        convenience init(collector: InfoItemsCollector<T, Any>, nextPage: Page?) {
+//            self.init(
+//                itemsList: collector.getItems(),
+//                nextPage: nextPage,
+//                errors: collector.getErrors()
+//            )
+//        }
+//
+//        func hasNextPage() -> Bool {
+//            return Page.isValid(nextPage)
+//        }
+//
+//        func getItems() -> [T] {
+//            return itemsList
+//        }
+//
+//        func getNextPage() -> Page? {
+//            return nextPage
+//        }
+//
+//        func getErrors() -> [Error] {
+//            return errors
+//        }
+//    }
+//}
 
 
 
@@ -137,7 +181,7 @@ public class InfoItemsPage<T: InfoItem>: @unchecked Sendable {
 
     /// Gets the next page relative to this one.
     /// - Returns: The next page, or `nil` if there is no next page.
-    func getNextPage() -> Page? {
+    public func getNextPage() -> Page? {
         return nextPage
     }
 

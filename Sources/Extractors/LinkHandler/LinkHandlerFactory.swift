@@ -8,21 +8,16 @@
 import Foundation
 
 public protocol LinkHandlerFactory {
-    // MARK: - To Override
-
-    func getId(_ url: String) throws -> String
-    func getUrl(_ id: String) throws -> String
-    func onAcceptUrl(_ url: String) throws -> Bool
-    func getUrl(_ id: String, _ baseUrl: String) throws -> String
-
-
-    func fromUrl(_ url: String) throws -> LinkHandler
-    func fromUrl(_ url: String, _ baseUrl: String) throws -> LinkHandler
-    func fromId(_ id: String) throws -> LinkHandler
-    func fromId(_ id: String, _ baseUrl: String) throws -> LinkHandler
+    func getId(_ url: String) throws(ParsingUnsupportedOperation) -> String
+    func getUrl(_ id: String) throws(ParsingUnsupportedOperation) -> String
+    func onAcceptUrl(_ url: String) throws(ParsingException) -> Bool
 }
 
 extension LinkHandlerFactory {
+    func getUrl(_ id: String, _ baseUrl: String) throws(ParsingUnsupportedOperation) -> String {
+        try getUrl(id)
+    }
+    
     // MARK: - Logic
     /**
      * Builds a {@link LinkHandler} from a url.<br>
@@ -32,8 +27,8 @@ extension LinkHandlerFactory {
      * @param url the url to extract path and id from
      * @return a {@link LinkHandler} complete with information
      */
-    public func fromUrl(_ url: String) throws -> LinkHandler {
-        let polishedUrl = try Utils.followGoogleRedirectIfNeeded(url);
+    public func fromUrl(_ url: String) throws(ParsingException) -> LinkHandler {
+        let polishedUrl = Utils.followGoogleRedirectIfNeeded(url);
         let baseUrl = try Utils.getBaseUrl(polishedUrl);
         return try fromUrl(polishedUrl, baseUrl);
     }
@@ -49,23 +44,51 @@ extension LinkHandlerFactory {
      * @param baseUrl the base URL
      * @return a {@link LinkHandler} complete with information
      */
-    public func fromUrl(_ url: String, _ baseUrl: String) throws -> LinkHandler {
+    public func fromUrl(_ url: String, _ baseUrl: String) throws(ParsingException) -> LinkHandler {
         if (try !acceptUrl(url)) {
             throw ParsingException("URL not accepted: " + url)
         }
 
-        let id: String = try getId(url)
-        return LinkHandler(url, try getUrl(id, baseUrl), id)
+        do {
+            let id: String = try getId(url)
+            return LinkHandler(url, try getUrl(id, baseUrl), id)
+
+        } catch (let error) {
+            switch error {
+            case .parsing(let parsingError):
+                throw parsingError
+            case .unsupportedOperation(let cause):
+                throw ParsingException("Could not extract id from URL: " + url, cause)
+            }
+        }
     }
 
-    public func fromId(_ id: String) throws -> LinkHandler {
-        let url = try getUrl(id);
-        return LinkHandler(url, url, id)
+    public func fromId(_ id: String) throws(ParsingException) -> LinkHandler {
+        do {
+            let url = try getUrl(id)
+            return LinkHandler(url, url, id)
+        } catch (let error) {
+            switch error {
+            case .parsing(let parsingError):
+                throw parsingError
+            case .unsupportedOperation(let cause ):
+                throw ParsingException("Could not extract id from id: " + id, cause)
+            }
+        }
     }
 
-    public func fromId(_ id: String, _ baseUrl: String) throws -> LinkHandler {
-        let url = try getUrl(id, baseUrl)
-        return LinkHandler(url, url, id)
+    public func fromId(_ id: String, _ baseUrl: String) throws(ParsingException) -> LinkHandler {
+        do {
+            let url = try getUrl(id, baseUrl)
+            return LinkHandler(url, url, id)
+        } catch (let error) {
+            switch error {
+            case .parsing(let parsingError):
+                throw parsingError
+            case .unsupportedOperation(let cause):
+                throw ParsingException("Could not extract id from URL: \(id) and \(baseUrl)", cause)
+            }
+        }
     }
 
     /**
@@ -73,7 +96,7 @@ extension LinkHandlerFactory {
      * Intent was meant to be watched with this Service.
      * Return false if this service shall not allow to be called through ACTIONs.
      */
-    public func acceptUrl(_ url: String) throws -> Bool {
+    public func acceptUrl(_ url: String) throws(ParsingException) -> Bool {
         try onAcceptUrl(url);
     }
 }

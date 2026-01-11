@@ -8,11 +8,11 @@
 import Foundation
 
 /// Abstract class representing a channel extractor.
-open class ChannelExtractor: Extractor {
+public class ChannelExtractor: Extractor {
     public static let unknownSubscriberCount: Int64 = -1
 
-    public init(service: any StreamingService, linkHandler: ListLinkHandler) {
-        super.init(service: service, linkHandler: linkHandler)
+    public init(service:  StreamingService, linkHandler: ListLinkHandler) {
+        super.init(service, linkHandler)
     }
 
     /// Retrieves the avatars associated with the channel.

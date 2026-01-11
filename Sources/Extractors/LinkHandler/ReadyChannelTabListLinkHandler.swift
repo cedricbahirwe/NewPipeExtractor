@@ -9,7 +9,7 @@ import Foundation
 
 public class ReadyChannelTabListLinkHandler: ListLinkHandler {
 
-    public typealias ChannelTabExtractorBuilder = (any StreamingService, ListLinkHandler) -> ChannelTabExtractor
+    public typealias ChannelTabExtractorBuilder = (StreamingService, ListLinkHandler) -> ChannelTabExtractor
 
     private let extractorBuilder: ChannelTabExtractorBuilder
 
@@ -34,7 +34,7 @@ public class ReadyChannelTabListLinkHandler: ListLinkHandler {
     ///
     /// - Parameter service: The streaming service for which to build the extractor.
     /// - Returns: A `ChannelTabExtractor` instance.
-    public func getChannelTabExtractor(service: any StreamingService) -> ChannelTabExtractor {
+    public func getChannelTabExtractor(service: StreamingService) -> ChannelTabExtractor {
         return extractorBuilder(service, ListLinkHandler(handler: self))
     }
 }

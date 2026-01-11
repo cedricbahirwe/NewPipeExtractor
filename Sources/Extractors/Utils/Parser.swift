@@ -15,9 +15,9 @@ public class Parser {
 
     private init() {}
 
-    class RegexException: ParsingException, @unchecked Sendable {
-        convenience init(message: String) {
-            self.init(message)
+    public class RegexException: ParsingException, @unchecked Sendable {
+        public init(_ message: String) {
+            super.init(message)
         }
     }
 
@@ -41,13 +41,13 @@ public class Parser {
             if groupRange.location != NSNotFound {
                 return (input as NSString).substring(with: groupRange)
             } else {
-                throw RegexException(message: "Group \(group) not found")
+                throw RegexException("Group \(group) not found")
             }
         } else {
             if input.count > 1024 {
-                throw RegexException(message: "Failed to find pattern \"\(pattern.pattern)\"")
+                throw RegexException("Failed to find pattern \"\(pattern.pattern)\"")
             } else {
-                throw RegexException(message: "Failed to find pattern \"\(pattern.pattern)\" inside of \"\(input)\"")
+                throw RegexException("Failed to find pattern \"\(pattern.pattern)\" inside of \"\(input)\"")
             }
         }
     }
@@ -65,9 +65,9 @@ public class Parser {
                 return matcher
             } else if exception == nil {
                 if input.count > 1024 {
-                    exception = RegexException(message: "Failed to find pattern \"\(pattern.pattern)\"")
+                    exception = RegexException("Failed to find pattern \"\(pattern.pattern)\"")
                 } else {
-                    exception = RegexException(message: "Failed to find pattern \"\(pattern.pattern)\" inside of \"\(input)\"")
+                    exception = RegexException("Failed to find pattern \"\(pattern.pattern)\" inside of \"\(input)\"")
                 }
             }
         }
@@ -75,7 +75,7 @@ public class Parser {
         if let exception = exception {
             throw exception
         } else {
-            throw RegexException(message: "Empty patterns array passed to matchMultiplePatterns")
+            throw RegexException("Empty patterns array passed to matchMultiplePatterns")
         }
     }
 

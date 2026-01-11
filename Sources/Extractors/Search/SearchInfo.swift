@@ -22,13 +22,13 @@ public class SearchInfo: ListInfo<InfoItem> {
         fatalError("init(from:) has not been implemented")
     }
 
-    public static func getInfo<T: StreamingService>(service: T, searchQuery: SearchQueryHandler) throws -> SearchInfo where T.ResultInfoItem == InfoItem {
-        let extractor = service.getSearchExtractor(searchQuery)
+    public static func getInfo(_ service: StreamingService, _ searchQuery: SearchQueryHandler) throws(IOExtractionException) -> SearchInfo {
+        let extractor: SearchExtractor = service.getSearchExtractor(searchQuery)
         try extractor.fetchPage()
-        return try getInfo(from: extractor)
+        return try getInfo(extractor)
     }
 
-    public static func getInfo(from extractor: SearchExtractor<InfoItem>) throws -> SearchInfo {
+    public static func getInfo(_ extractor: SearchExtractor) throws(IOExtractionException) -> SearchInfo {
         let info = SearchInfo(
             serviceId: extractor.getServiceId(),
             qIHandler: extractor.getLinkHandler(),
@@ -58,7 +58,7 @@ public class SearchInfo: ListInfo<InfoItem> {
         return info;
     }
 
-    public static func getMoreItems<S: StreamingService>(service: S, query: SearchQueryHandler, page: Page) throws -> InfoItemsPage<InfoItem> where S.ResultInfoItem == InfoItem {
+    public static func getMoreItems(_ service: StreamingService, _ query: SearchQueryHandler, _ page: Page) throws -> InfoItemsPage<InfoItem> {
         return try service.getSearchExtractor(query).getPage(page)
     }
 

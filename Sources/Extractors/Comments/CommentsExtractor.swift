@@ -8,10 +8,10 @@
 
 import Foundation
 
-open class CommentsExtractor: ListExtractor<CommentsInfoItem> {
+public class CommentsExtractor: ListExtractor<CommentsInfoItem> {
 
-    public override init(service: any StreamingService, linkHandler: ListLinkHandler) {
-        super.init(service: service, linkHandler: linkHandler)
+    public override init(_ service: StreamingService, _ linkHandler: ListLinkHandler) {
+        super.init(service, linkHandler)
     }
 
     /// Warning: This method is experimental and may get removed in a future release.
@@ -25,7 +25,7 @@ open class CommentsExtractor: ListExtractor<CommentsInfoItem> {
         return -1
     }
 
-    public override func getName() throws -> String {
+    public override func getName() throws(ParsingException) -> String {
         return "Comments"
     }
 }

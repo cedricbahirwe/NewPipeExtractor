@@ -10,8 +10,8 @@
 /// 
 /// YouTube is an example of a service that has this alternative available.
 public class FeedExtractor: ListExtractor<StreamInfoItem> {
-    
-    public init(service: any StreamingService, listLinkHandler: ListLinkHandler) {
-        super.init(service: service, linkHandler: listLinkHandler)
+
+    public override init(_ service: StreamingService, _ linkHandler: ListLinkHandler) {
+        super.init(service, linkHandler)
     }
 }
